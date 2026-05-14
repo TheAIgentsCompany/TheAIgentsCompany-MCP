@@ -9,6 +9,7 @@ export interface Project {
   status: string;
   goal: string;
   repo: string;
+  url: string;
 }
 
 export interface Skill {
@@ -62,6 +63,7 @@ function parseProjectFile(filepath: string): Project | undefined {
       status: String(data.status ?? "unknown"),
       goal: String(data.goal ?? ""),
       repo: String(data.repo ?? ""),
+      url: String(data.url ?? ""),
     };
   } catch {
     return undefined;

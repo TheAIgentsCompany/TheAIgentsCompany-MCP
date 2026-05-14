@@ -94,6 +94,7 @@ export function createServer(): Server {
             lines.push(`${icon[p.status] ?? "❓"} **${p.name}** (${p.status})`);
             if (p.goal) lines.push(`   ${p.goal.slice(0, 120)}`);
             if (p.repo) lines.push(`   🔗 ${p.repo}`);
+            if (p.url) lines.push(`   🌐 ${p.url}`);
           }
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
@@ -117,6 +118,7 @@ export function createServer(): Server {
           ];
           if (p.goal) lines.push(`\n## Goal\n${p.goal}`);
           if (p.repo) lines.push(`\n## Repo\n🔗 ${p.repo}`);
+          if (p.url) lines.push(`\n## Deploy\n🌐 ${p.url}`);
           lines.push(`\n_ID: \`${p.id}\`_`);
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
