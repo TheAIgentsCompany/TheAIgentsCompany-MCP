@@ -1,0 +1,52 @@
+{
+  "name": "@theaigentscompany/mcp",
+  "version": "1.0.0",
+  "description": "TheAIgentsCompany MCP — projects and skills for AI agents",
+  "type": "module",
+  "main": "./dist/server.js",
+  "bin": {
+    "theaigentscompany-mcp": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/server.js",
+      "types": "./dist/server.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/bin.ts",
+    "start": "node dist/bin.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["mcp", "theaigentscompany", "claude", "ai"],
+  "author": "TheAIgentsCompany",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  }
+}

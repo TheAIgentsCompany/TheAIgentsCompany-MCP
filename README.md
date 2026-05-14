@@ -4,13 +4,13 @@
 
 <p align="center">
   <b>Public MCP Server</b><br>
-  <i>Expose projects and skills to AI agents</i>
+  <i>Expose TheAIgentsCompany projects and skills to AI agents</i>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.0-6366F1?style=flat-square" alt="Version 1.0.0"/>
   <img src="https://img.shields.io/badge/status-active-22C55E?style=flat-square" alt="Active"/>
-  <img src="https://img.shields.io/badge/stack-Python%20%7C%20MCP%20SDK-3776AB?style=flat-square" alt="Python MCP"/>
+  <img src="https://img.shields.io/badge/stack-TypeScript%20%7C%20MCP%20SDK-3178C6?style=flat-square" alt="TypeScript MCP"/>
   <img src="https://img.shields.io/badge/license-MIT-FACC15?style=flat-square" alt="MIT"/>
 </p>
 
@@ -31,10 +31,16 @@ Minimal and public-safe — no internal architecture, decisions, or tasks expose
 ## ◉ Quick Start
 
 ```bash
-pip install -r requirements.txt
-pip install -e .
-python -m theaigentscompany_mcp
+# Run directly (no install needed)
+npx -y @theaigentscompany/mcp@latest
+
+# Generate config snippets for Claude/Cursor
+npx -y @theaigentscompany/mcp@latest install
 ```
+
+---
+
+## ◈ Install
 
 ### Claude Desktop
 
@@ -44,78 +50,124 @@ Add to `~/.config/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "theaigentscompany": {
-      "command": "python3",
-      "args": ["-m", "theaigentscompany_mcp"]
+      "command": "npx",
+      "args": ["-y", "@theaigentscompany/mcp@latest"]
     }
   }
 }
 ```
 
-### Hermes
-
-Add to `~/.hermes/config.yaml`:
-
-```yaml
-mcp:
-  servers:
-    - name: theaigentscompany
-      command: python3
-      args: ["-m", "theaigentscompany_mcp"]
-```
-
----
-
-## ◈ Docker (SSE mode)
-
-Run the MCP as an HTTP server — useful when you don't want to manage Python dependencies locally.
-
-### One-command runner
-
-```bash
-./docker-run.sh          # Build + run sur le port 8000
-./docker-run.sh --port 8080   # Port personnalisé
-./docker-run.sh --stop        # Arrêter le conteneur
-./docker-run.sh --build       # Forcer le rebuild
-```
-
-### Manual
-
-```bash
-docker build -t theaigentscompany/mcp .
-docker run -p 8000:8000 \
-  -v ~/Github/TheAIgentsCompany/agents/projects:/data/projects \
-  -v ~/.hermes/skills:/data/skills \
-  theaigentscompany/mcp
-```
-
-Then configure Claude Desktop to connect to `http://localhost:8000/sse`:
+### Cursor
 
 ```json
 {
   "mcpServers": {
     "theaigentscompany": {
-      "url": "http://localhost:8000/sse"
+      "command": "npx",
+      "args": ["-y", "@theaigentscompany/mcp@latest"]
     }
   }
 }
 ```
 
-> **Note:** En mode HTTP (SSE), on utilise `"url"` au lieu de `"command"` + `"args"`. Ajoute ça dans `~/.config/Claude/claude_desktop_config.json` et redémarre Claude Desktop.
+### Claude Code CLI
 
-> **Note:** The MCP serves on `localhost:8000/sse` via SSE transport. Use stdio mode (default) for local CLI usage — Docker is only needed for remote access or environment isolation.
+```bash
+claude mcp add theaigentscompany --scope user \
+  -- npx -y @theaigentscompany/mcp@latest
+```
+
+---
+
+## ◈ Custom Paths
+
+Set environment variables if your directories are at custom locations:
+
+```json
+{
+  "mcpServers": {
+    "theaigentscompany": {
+      "command": "npx",
+      "args": ["-y", "@theaigentscompany/mcp@latest"],
+      "env": {
+        "MCP_PROJECTS_DIR": "/path/to/projects",
+        "MCP_SKILLS_DIR": "/path/to/skills"
+      }
+    }
+  }
+}
+```
 
 ---
 
 ## ◈ Development
 
 ```bash
-pip install -e .
-pip install pytest ruff mypy
+# Clone and install
+git clone https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP.git
+cd TheAIgentsCompany-MCP
+npm install
 
-python -m pytest tests/ -v
-ruff check src/ tests/
-mypy src/
+# Dev (hot reload)
+npm run dev
+
+# Build
+npm run build
+
+# Run from dist
+npm start
+
+# Generate install config
+npm start install
 ```
+
+---
+
+## ◈ Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MCP_PROJECTS_DIR` | `~/Github/TheAIgentsCompany/agents/projects` | Path to project markdown files |
+| `MCP_SKILLS_DIR` | `~/.hermes/skills` | Path to Hermes skills |
+
+---
+
+## ⚠ Troubleshooting
+
+### npx ne trouve pas le package
+
+```bash
+# Vérifie que le package existe
+npm view @theaigentscompany/mcp
+
+# Force le nettoyage du cache npx
+npx --clear-cache
+npx -y @theaigentscompany/mcp@latest
+```
+
+### Node version trop vieille
+
+Ce MCP nécessite Node.js >= 18. Vérifie avec :
+
+```bash
+node --version
+```
+
+### Le MCP ne trouve pas les projets
+
+Vérifie que les chemins par défaut existent :
+
+```bash
+ls ~/Github/TheAIgentsCompany/agents/projects/*.md
+```
+
+Ou configure `MCP_PROJECTS_DIR` pour pointer vers le bon dossier.
+
+### Claude Desktop ne connecte pas le MCP
+
+1. Vérifie la syntaxe JSON de ta config
+2. Relance complètement Claude Desktop
+3. Vérifie les logs : `~/.config/Claude/logs/mcp.log`
 
 ---
 

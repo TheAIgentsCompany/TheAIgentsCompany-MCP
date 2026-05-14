@@ -1,0 +1,26 @@
+{
+  "name": "@theaigentscompany/mcp",
+  "description": "TheAIgentsCompany MCP — expose projects and skills to AI agents",
+  "version": "1.0.0",
+  "command": "npx",
+  "args": ["-y", "@theaigentscompany/mcp@latest"],
+  "env": {
+    "MCP_PROJECTS_DIR": {
+      "description": "Path to projects directory (default: ~/Github/TheAIgentsCompany/agents/projects)",
+      "required": false
+    },
+    "MCP_SKILLS_DIR": {
+      "description": "Path to skills directory (default: ~/.hermes/skills)",
+      "required": false
+    }
+  },
+  "capabilities": {
+    "tools": [
+      "list_projects",
+      "get_project",
+      "list_skills"
+    ],
+    "prompts": [],
+    "resources": []
+  }
+}
