@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "TheAIgentsCompany MCP — projects and skills for AI agents",
   "type": "module",
-  "main": "./dist/server.js",
+  "main": "dist/server.js",
   "bin": {
-    "theaigentscompany-mcp": "./dist/bin.js"
+    "theaigentscompany-mcp": "dist/bin.js"
   },
   "exports": {
     ".": {
-      "import": "./dist/server.js",
-      "types": "./dist/server.d.ts"
+      "import": "dist/server.js",
+      "types": "dist/server.d.ts"
     }
   },
   "files": [
@@ -26,12 +26,17 @@
     "start": "node dist/bin.js",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["mcp", "theaigentscompany", "claude", "ai"],
+  "keywords": [
+    "mcp",
+    "theaigentscompany",
+    "claude",
+    "ai"
+  ],
   "author": "TheAIgentsCompany",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP.git"
+    "url": "git+https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP.git"
   },
   "engines": {
     "node": ">=18"
