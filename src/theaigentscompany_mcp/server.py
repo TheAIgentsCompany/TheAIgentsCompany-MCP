@@ -131,6 +131,12 @@ def main() -> None:
         help="Transport: stdio (local) or sse (HTTP)",
     )
     parser.add_argument(
+        "--host",
+        type=str,
+        default=os.environ.get("MCP_HOST", "0.0.0.0"),
+        help="SSE server host (default: 0.0.0.0, use 127.0.0.1 for local-only)",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -150,9 +156,12 @@ def main() -> None:
 
     logger.info("Starting TheAIgentsCompany MCP")
     logger.info("  Transport: %s", args.transport)
+    logger.info("  Host:      %s", args.host)
     logger.info("  Projects:  %s", _projects_dir)
     logger.info("  Skills:    %s", _skills_dir)
     logger.info("  Tools: list_projects, get_project, list_skills")
+
+    mcp.settings.host = args.host
 
     if args.transport == "sse":
         mcp.run(transport="sse")
