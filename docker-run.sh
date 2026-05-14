@@ -81,6 +81,7 @@ docker run -d \
   -p "${PORT}:8000" \
   -v "${PROJECTS_DIR}:/app/data/projects" \
   -v "${SKILLS_DIR}:/app/data/skills" \
+  -e MCP_HOST=0.0.0.0 \
   --restart unless-stopped \
   "$IMAGE"
 
