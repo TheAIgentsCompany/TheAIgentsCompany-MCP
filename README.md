@@ -88,7 +88,19 @@ docker run -p 8000:8000 \
   theaigentscompany/mcp
 ```
 
-Then configure Claude Desktop to connect to `http://localhost:8000/sse`.
+Then configure Claude Desktop to connect to `http://localhost:8000/sse`:
+
+```json
+{
+  "mcpServers": {
+    "theaigentscompany": {
+      "url": "http://localhost:8000/sse"
+    }
+  }
+}
+```
+
+> **Note:** En mode HTTP (SSE), on utilise `"url"` au lieu de `"command"` + `"args"`. Ajoute ça dans `~/.config/Claude/claude_desktop_config.json` et redémarre Claude Desktop.
 
 > **Note:** The MCP serves on `localhost:8000/sse` via SSE transport. Use stdio mode (default) for local CLI usage — Docker is only needed for remote access or environment isolation.
 
