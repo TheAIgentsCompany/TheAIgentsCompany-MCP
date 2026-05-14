@@ -69,11 +69,19 @@ mcp:
 
 Run the MCP as an HTTP server — useful when you don't want to manage Python dependencies locally.
 
-```bash
-# Build
-docker build -t theaigentscompany/mcp .
+### One-command runner
 
-# Run with local data
+```bash
+./docker-run.sh          # Build + run sur le port 8000
+./docker-run.sh --port 8080   # Port personnalisé
+./docker-run.sh --stop        # Arrêter le conteneur
+./docker-run.sh --build       # Forcer le rebuild
+```
+
+### Manual
+
+```bash
+docker build -t theaigentscompany/mcp .
 docker run -p 8000:8000 \
   -v ~/Github/TheAIgentsCompany/agents/projects:/data/projects \
   -v ~/.hermes/skills:/data/skills \
