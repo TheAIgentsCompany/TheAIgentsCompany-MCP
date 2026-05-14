@@ -209,6 +209,8 @@ def main():
                         help=f"Path to projects directory (default: {DEFAULT_PROJECTS_DIR})")
     parser.add_argument("--skills-dir", type=Path, default=DEFAULT_SKILLS_DIR,
                         help=f"Path to skills directory (default: {DEFAULT_SKILLS_DIR})")
+    parser.add_argument("--transport", choices=["stdio", "sse"], default="stdio",
+                        help="Transport: stdio (local MCP clients) or sse (HTTP, via uvicorn)")
     args = parser.parse_args()
 
     _projects_dir = args.projects_dir
@@ -220,11 +222,16 @@ def main():
         print(f"Warning: skills dir not found: {_skills_dir}", file=sys.stderr)
 
     print(f"Starting TheAIgentsCompany MCP Tracker...", file=sys.stderr)
-    print(f"  Projects: {_projects_dir}", file=sys.stderr)
-    print(f"  Skills:   {_skills_dir}", file=sys.stderr)
+    print(f"  Transport: {args.transport}", file=sys.stderr)
+    print(f"  Projects:  {_projects_dir}", file=sys.stderr)
+    print(f"  Skills:    {_skills_dir}", file=sys.stderr)
     print(f"  Tools: list_projects, get_project, list_skills, get_project_count, search_projects", file=sys.stderr)
 
-    mcp.run(transport="stdio")
+    if args.transport == "sse":
+        print(f"  URL: http://0.0.0.0:8000/sse", file=sys.stderr)
+        mcp.run(transport="sse")
+    else:
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
