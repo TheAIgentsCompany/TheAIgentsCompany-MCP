@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -114,14 +115,14 @@ def main() -> None:
     parser.add_argument(
         "--projects-dir",
         type=Path,
-        default=DEFAULT_PROJECTS_DIR,
-        help="Path to projects directory",
+        default=os.environ.get("MCP_PROJECTS_DIR", DEFAULT_PROJECTS_DIR),
+        help="Path to projects directory (or MCP_PROJECTS_DIR env var)",
     )
     parser.add_argument(
         "--skills-dir",
         type=Path,
-        default=DEFAULT_SKILLS_DIR,
-        help="Path to skills directory",
+        default=os.environ.get("MCP_SKILLS_DIR", DEFAULT_SKILLS_DIR),
+        help="Path to skills directory (or MCP_SKILLS_DIR env var)",
     )
     parser.add_argument(
         "--transport",

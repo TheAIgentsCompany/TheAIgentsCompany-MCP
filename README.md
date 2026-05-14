@@ -65,6 +65,27 @@ mcp:
 
 ---
 
+## ◈ Docker (SSE mode)
+
+Run the MCP as an HTTP server — useful when you don't want to manage Python dependencies locally.
+
+```bash
+# Build
+docker build -t theaigentscompany/mcp .
+
+# Run with local data
+docker run -p 8000:8000 \
+  -v ~/Github/TheAIgentsCompany/agents/projects:/data/projects \
+  -v ~/.hermes/skills:/data/skills \
+  theaigentscompany/mcp
+```
+
+Then configure Claude Desktop to connect to `http://localhost:8000/sse`.
+
+> **Note:** The MCP serves on `localhost:8000/sse` via SSE transport. Use stdio mode (default) for local CLI usage — Docker is only needed for remote access or environment isolation.
+
+---
+
 ## ◈ Development
 
 ```bash
