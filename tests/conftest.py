@@ -1,4 +1,4 @@
-"""Test fixtures for theaigents_tracker tests."""
+"""Test fixtures for theaigentscompany_mcp tests."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ def test_projects_dir(tmp_path: Path) -> Path:
     d = tmp_path / "projects"
     d.mkdir(parents=True)
 
-    # Active project
     (d / "website.md").write_text(
         """\
 ---
@@ -22,22 +21,12 @@ name: Company Website
 status: active
 goal: Build the company landing page and marketing site
 repo: https://github.com/TheAIgentsCompany/website
-private: true
-key_decisions:
-  - Static site with Hugo
-  - Deploy on Vercel
-architecture_notes: Hugo-based static site, no backend
-tasks:
-  - Design homepage
-  - Build with Hugo
 ---
 # Company Website
-
-The main marketing site for TheAIgentsCompany.
+Main marketing site.
 """
     )
 
-    # Completed project
     (d / "project-tracker-mcp.md").write_text(
         """\
 ---
@@ -46,8 +35,6 @@ name: Project Tracker MCP
 status: active
 goal: An MCP server for company project data
 repo: https://github.com/TheAIgentsCompany/project-tracker-mcp
-private: true
-architecture_notes: Python MCP server
 ---
 Implementation details...
 """
@@ -63,15 +50,14 @@ def test_skills_dir(tmp_path: Path) -> Path:
     d.mkdir(parents=True)
 
     skill_dir = d / "theaigents-dev"
-    skill_dir.mkdir(parents=True)
+    skill_dir.mkdir()
     (skill_dir / "SKILL.md").write_text(
         """\
 ---
 name: theaigents-dev
-description: Engineering Lead — implements code with TDD
+description: Engineering Lead — TDD, implementation, code structure
 ---
 # Dev Skill
-Implementation details...
 """
     )
 
