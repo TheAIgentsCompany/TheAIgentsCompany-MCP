@@ -134,40 +134,40 @@ npm start install
 
 ## ⚠ Troubleshooting
 
-### npx ne trouve pas le package
+### npx cannot find the package
 
 ```bash
-# Vérifie que le package existe
+# Check the package exists
 npm view @theaigentscompany/mcp
 
-# Force le nettoyage du cache npx
+# Force clear npx cache
 npx --clear-cache
 npx -y @theaigentscompany/mcp@latest
 ```
 
-### Node version trop vieille
+### Node version too old
 
-Ce MCP nécessite Node.js >= 18. Vérifie avec :
+This MCP requires Node.js >= 18. Check with:
 
 ```bash
 node --version
 ```
 
-### Le MCP ne trouve pas les projets
+### MCP cannot find projects
 
-Vérifie que les chemins par défaut existent :
+Verify the default paths exist:
 
 ```bash
 ls ~/Github/TheAIgentsCompany/agents/projects/*.md
 ```
 
-Ou configure `MCP_PROJECTS_DIR` pour pointer vers le bon dossier.
+Or set `MCP_PROJECTS_DIR` to point to the correct directory.
 
-### Claude Desktop ne connecte pas le MCP
+### Claude Desktop cannot connect
 
-1. Vérifie la syntaxe JSON de ta config
-2. Relance complètement Claude Desktop
-3. Vérifie les logs : `~/.config/Claude/logs/mcp.log`
+1. Check your config JSON syntax
+2. Fully restart Claude Desktop
+3. Check the logs: `~/.config/Claude/logs/mcp.log`
 
 ---
 
