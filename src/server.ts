@@ -54,7 +54,7 @@ export function createServer(): Server {
       },
       {
         name: "list_skills",
-        description: "List available Hermes skills with short descriptions.",
+        description: "List Hermes skill names and descriptions (no skill content exposed).",
         inputSchema: {
           type: "object",
           properties: {},

@@ -1,6 +1,6 @@
 {
   "name": "@theaigentscompany/mcp",
-  "description": "TheAIgentsCompany MCP — expose projects and skills to AI agents",
+  "description": "TheAIgentsCompany MCP — list project info (GitHub/deploy links), list skill names",
   "version": "1.0.0",
   "command": "npx",
   "args": ["-y", "@theaigentscompany/mcp@latest"],

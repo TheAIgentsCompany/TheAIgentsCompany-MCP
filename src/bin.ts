@@ -31,7 +31,8 @@ async function installCommand() {
 ╚══════════════════════════════════════════════════════════════╝
 
 This MCP reads your local TheAIgentsCompany project files
-and Hermes skills to expose them to AI agents.
+to expose them to AI agents. It also lists available
+Hermes skills (name + description only, no content).
 
 To use it, add one of the following configurations:
 

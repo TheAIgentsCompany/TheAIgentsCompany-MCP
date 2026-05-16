@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Public MCP Server</b><br>
-  <i>Expose TheAIgentsCompany projects and skills to AI agents</i>
+  <i>List TheAIgentsCompany projects with GitHub & deploy links — plus skill names/descriptions</i>
 </p>
 
 <p align="center">
