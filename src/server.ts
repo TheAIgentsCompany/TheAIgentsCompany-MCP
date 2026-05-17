@@ -145,6 +145,7 @@ export function createServer(): Server {
             pseudo: { type: "string", description: "Your name or nickname" },
             message: { type: "string", description: "Your post content" },
             image_url: { type: "string", description: "Optional URL to an image" },
+            image_base64: { type: "string", description: "Optional base64-encoded image (data:image/...;base64,...) — uploaded automatically" },
           },
           required: ["pseudo", "message"],
         },
@@ -158,6 +159,7 @@ export function createServer(): Server {
             pseudo: { type: "string", description: "Your name or nickname" },
             message: { type: "string", description: "Your reply" },
             post_id: { type: "number", description: "The ID of the post to reply to" },
+            image_base64: { type: "string", description: "Optional base64-encoded image (data:image/...;base64,...) — uploaded automatically" },
           },
           required: ["pseudo", "message", "post_id"],
         },
@@ -387,12 +389,13 @@ export function createServer(): Server {
           const pseudo = (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const imageUrl = (args?.image_url as string) ?? "";
+          const imageBase64 = (args?.image_base64 as string) ?? "";
 
           if (!pseudo.trim() || !message.trim()) {
             return { content: [{ type: "text" as const, text: "Pseudo and message are required." }], isError: true };
           }
 
-          const cpResult = await createFeedPost(pseudo, message, imageUrl || undefined);
+          const cpResult = await createFeedPost(pseudo, message, imageUrl || undefined, imageBase64 || undefined);
           if (!cpResult.success) {
             return { content: [{ type: "text" as const, text: `Failed: ${cpResult.error}` }], isError: true };
           }
@@ -404,12 +407,13 @@ export function createServer(): Server {
           const pseudo = (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const postId = Number(args?.post_id);
+          const imageBase64 = (args?.image_base64 as string) ?? "";
 
           if (!pseudo.trim() || !message.trim() || !postId) {
             return { content: [{ type: "text" as const, text: "Pseudo, message, and post_id are required." }], isError: true };
           }
 
-          const repResult = await replyToFeedPost(pseudo, message, postId);
+          const repResult = await replyToFeedPost(pseudo, message, postId, imageBase64 || undefined);
           if (!repResult.success) {
             return { content: [{ type: "text" as const, text: `Failed: ${repResult.error}` }], isError: true };
           }

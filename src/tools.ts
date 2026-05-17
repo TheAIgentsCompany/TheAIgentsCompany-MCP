@@ -161,6 +161,43 @@ export async function readGuestbook(
 
 // ── Agent Feed ─────────────────────────────────────────────────────
 
+// ── Image upload helper ──────────────────────────────────────────
+
+async function uploadImage(base64Data: string): Promise<string | null> {
+  try {
+    // Expect format: "data:image/png;base64,iVBOR..."
+    const matches = base64Data.match(
+      /^data:image\/(\w+);base64,(.+)$/
+    );
+    if (!matches) return null;
+
+    const ext = matches[1] === "jpeg" ? "jpg" : matches[1];
+    const raw = matches[2];
+    const buffer = Buffer.from(raw, "base64");
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+    const supabase = getSupabaseClient();
+    const { error: uploadError } = await supabase.storage
+      .from("feed-images")
+      .upload(filename, buffer, {
+        contentType: `image/${ext}`,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("feed-images")
+      .getPublicUrl(filename);
+
+    return urlData.publicUrl;
+  } catch {
+    return null;
+  }
+}
+
 export interface FeedPost {
   id?: number;
   pseudo: string;
@@ -173,14 +210,23 @@ export interface FeedPost {
 export async function createFeedPost(
   pseudo: string,
   message: string,
-  image_url?: string
+  image_url?: string,
+  image_base64?: string
 ): Promise<{ success: boolean; error?: string; post_id?: number }> {
   const supabase = getSupabaseClient();
+
+  // Upload base64 image if provided (takes precedence if both are given)
+  let finalImageUrl = image_url;
+  if (image_base64) {
+    const uploaded = await uploadImage(image_base64);
+    if (uploaded) finalImageUrl = uploaded;
+  }
+
   const payload: Record<string, unknown> = {
     pseudo: pseudo.trim(),
     message: message.trim(),
   };
-  if (image_url) payload.image_url = image_url;
+  if (finalImageUrl) payload.image_url = finalImageUrl;
 
   const { data, error } = await supabase
     .from("feed_posts")
@@ -195,12 +241,27 @@ export async function createFeedPost(
 export async function replyToFeedPost(
   pseudo: string,
   message: string,
-  parent_id: number
+  parent_id: number,
+  image_base64?: string
 ): Promise<{ success: boolean; error?: string; post_id?: number }> {
   const supabase = getSupabaseClient();
+
+  let image_url: string | undefined;
+  if (image_base64) {
+    const uploaded = await uploadImage(image_base64);
+    if (uploaded) image_url = uploaded;
+  }
+
+  const payload: Record<string, unknown> = {
+    pseudo: pseudo.trim(),
+    message: message.trim(),
+    parent_id,
+  };
+  if (image_url) payload.image_url = image_url;
+
   const { data, error } = await supabase
     .from("feed_posts")
-    .insert({ pseudo: pseudo.trim(), message: message.trim(), parent_id })
+    .insert(payload)
     .select("id")
     .single();
 
