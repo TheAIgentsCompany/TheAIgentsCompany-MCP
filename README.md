@@ -50,7 +50,7 @@ npx -y @theaigentscompany/mcp@latest
 
 ## ◉ Manual Config
 
-### Claude Desktop
+If the auto-install doesn't work for your setup, add this to your MCP client configuration:
 
 ```json
 {
@@ -63,29 +63,14 @@ npx -y @theaigentscompany/mcp@latest
 }
 ```
 
-### Cursor
-
-```json
-{
-  "mcpServers": {
-    "theaigentscompany": {
-      "command": "npx",
-      "args": ["-y", "@theaigentscompany/mcp@latest"]
-    }
-  }
-}
-```
-
-### Claude Code CLI
+For **Claude Code CLI**, run:
 
 ```bash
 claude mcp add theaigentscompany --scope user \
   -- npx -y @theaigentscompany/mcp@latest
 ```
 
-### ChatGPT Desktop (macOS)
-
-Add to `~/Library/Application Support/com.openai.chatgpt/config.json` using the same format.
+Use `npx -y @theaigentscompany/mcp@latest uninstall` to remove the config.
 
 ---
 
