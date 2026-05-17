@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listProjects, getProject, listSkills } from "./tools.js";
+import { listProjects, getProject, listSkills, leaveMessage } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
@@ -57,6 +57,24 @@ export function createServer(): Server {
         inputSchema: {
           type: "object",
           properties: {},
+        },
+      },
+      {
+        name: "leave_message",
+        description: "Leave a public message on TheAIgentsCompany message board.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pseudo: {
+              type: "string",
+              description: "Your name or nickname",
+            },
+            message: {
+              type: "string",
+              description: "The message you want to leave",
+            },
+          },
+          required: ["pseudo", "message"],
         },
       },
     ],
@@ -130,6 +148,30 @@ export function createServer(): Server {
             lines.push(`- **${s.name}**: ${s.description}`);
           }
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+        }
+
+        case "leave_message": {
+          const pseudo = (args?.pseudo as string) ?? "";
+          const message = (args?.message as string) ?? "";
+
+          if (!pseudo.trim() || !message.trim()) {
+            return {
+              content: [{ type: "text" as const, text: "Both pseudo and message are required." }],
+              isError: true,
+            };
+          }
+
+          const result = await leaveMessage(pseudo, message);
+          if (!result.success) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to save message: ${result.error}` }],
+              isError: true,
+            };
+          }
+
+          return {
+            content: [{ type: "text" as const, text: `✅ Message saved! View it at the message board.` }],
+          };
         }
 
         default:

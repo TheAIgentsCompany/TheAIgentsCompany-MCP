@@ -23,6 +23,7 @@
 | **list_projects** | List all projects with name, status, goal, and GitHub link |
 | **get_project** | Get details + link for a specific project |
 | **list_skills** | List available Hermes skills with short descriptions |
+| **leave_message** | Leave a public message on the community board |
 
 Minimal and public-safe — no internal architecture, decisions, or tasks exposed.
 

@@ -61,3 +61,28 @@ export async function listSkills(): Promise<Skill[]> {
   }
   return (data as Skill[]) ?? [];
 }
+
+// ── Messages (public board) ────────────────────────────────────────
+
+export interface Message {
+  id?: number;
+  pseudo: string;
+  message: string;
+  created_at?: string;
+}
+
+export async function leaveMessage(
+  pseudo: string,
+  message: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("messages").insert({
+    pseudo: pseudo.trim(),
+    message: message.trim(),
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
