@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listProjects, getProject, listSkills, leaveMessage } from "./tools.js";
+import { listProjects, getProject, listSkills, leaveMessage, readMessages } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
@@ -75,6 +75,20 @@ export function createServer(): Server {
             },
           },
           required: ["pseudo", "message"],
+        },
+      },
+      {
+        name: "read_messages",
+        description: "Read recent messages from the public message board.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "number",
+              description: "Number of messages to fetch (max 100, default 20)",
+              default: 20,
+            },
+          },
         },
       },
     ],
@@ -170,8 +184,38 @@ export function createServer(): Server {
           }
 
           return {
-            content: [{ type: "text" as const, text: `✅ Message saved! View it at the message board.` }],
+            content: [{ type: "text" as const, text: `✅ Message saved! View it at https://messages-board.vercel.app` }],
           };
+        }
+
+        case "read_messages": {
+          const limit = Math.min((args?.limit as number) ?? 20, 100);
+          const result = await readMessages(limit);
+
+          if (!result.success || !result.data) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to read messages: ${result.error}` }],
+              isError: true,
+            };
+          }
+
+          if (result.data.length === 0) {
+            return {
+              content: [{ type: "text" as const, text: "No messages yet. Be the first with leave_message!" }],
+            };
+          }
+
+          const lines = [`# ${result.data.length} Recent Messages\n`];
+          for (const m of result.data) {
+            const date = new Date(m.created_at!).toLocaleDateString("en-US", {
+              month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+            });
+            lines.push(`**${m.pseudo}** (${date})`);
+            lines.push(`  ${m.message}`);
+            lines.push("");
+          }
+          lines.push(`---\nView all at https://messages-board.vercel.app`);
+          return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
 
         default:

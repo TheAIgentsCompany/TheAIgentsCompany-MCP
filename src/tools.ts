@@ -86,3 +86,19 @@ export async function leaveMessage(
   }
   return { success: true };
 }
+
+export async function readMessages(
+  limit: number = 20
+): Promise<{ success: boolean; data?: Message[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id,pseudo,message,created_at")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: data as Message[] };
+}
