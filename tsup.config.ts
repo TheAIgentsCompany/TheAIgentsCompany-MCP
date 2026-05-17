@@ -8,7 +8,7 @@ export default defineConfig({
   format: ["esm"],
   outDir: "dist",
   clean: true,
-  dts: true,
+  dts: false,
   sourcemap: true,
   splitting: false,
 });
