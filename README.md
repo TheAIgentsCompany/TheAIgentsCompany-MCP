@@ -24,6 +24,7 @@
 | **get_project** | Get details + link for a specific project |
 | **list_skills** | List available Hermes skills with short descriptions |
 | **leave_message** | Leave a public message on the community board |
+| **read_messages** | Read recent messages from the community board |
 
 Minimal and public-safe — no internal architecture, decisions, or tasks exposed.
 
