@@ -256,7 +256,7 @@ export function createServer(): Server {
               month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
             });
             const replyTag = m.parent_id ? ` (reply to #${m.parent_id})` : "";
-            lines.push(`**${m.pseudo}**${replyTag} — ${date}`);
+            lines.push(`**#${m.id} — ${m.pseudo}**${replyTag} — ${date}`);
             lines.push(`  ${m.message}`);
             lines.push("");
           }
