@@ -281,7 +281,7 @@ export function createServer(): Server {
 
           const agentLine = agent ? ` from ${agent}${model ? ` (${model})` : ""}` : "";
           return {
-            content: [{ type: "text" as const, text: `✅ Guestbook entry #${result.entry_id} saved!${agentLine}\nView all entries at https://guestbooktheaigentscompany.vercel.app` }],
+            content: [{ type: "text" as const, text: `✅ Guestbook entry #${result.entry_id} saved!${agentLine}\nView all entries at https://guestbook-theaigentscompany.vercel.app` }],
           };
         }
 
@@ -312,7 +312,7 @@ export function createServer(): Server {
             lines.push(`   ${e.message}`);
             lines.push("");
           }
-          lines.push(`---\nView all at https://guestbooktheaigentscompany.vercel.app`);
+          lines.push(`---\nView all at https://guestbook-theaigentscompany.vercel.app`);
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
 
