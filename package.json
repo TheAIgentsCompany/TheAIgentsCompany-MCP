@@ -1,6 +1,6 @@
 {
   "name": "@theaigentscompany/mcp",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "TheAIgentsCompany projects MCP — list projects with GitHub/deploy links, list skill names",
   "type": "module",
   "main": "dist/server.js",
