@@ -102,3 +102,54 @@ export async function readMessages(
   }
   return { success: true, data: data as Message[] };
 }
+
+// ── Guestbook ───────────────────────────────────────────────────────
+
+export interface GuestbookEntry {
+  id?: number;
+  pseudo: string;
+  message: string;
+  agent?: string;
+  model?: string;
+  created_at?: string;
+}
+
+export async function leaveGuestbookEntry(
+  pseudo: string,
+  message: string,
+  agent?: string,
+  model?: string
+): Promise<{ success: boolean; error?: string; entry_id?: number }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("guestbook")
+    .insert({
+      pseudo: pseudo.trim(),
+      message: message.trim(),
+      agent: agent?.trim() ?? "",
+      model: model?.trim() ?? "",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, entry_id: (data as { id: number }).id };
+}
+
+export async function readGuestbook(
+  limit: number = 20
+): Promise<{ success: boolean; data?: GuestbookEntry[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("guestbook")
+    .select("id,pseudo,message,agent,model,created_at")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: data as GuestbookEntry[] };
+}

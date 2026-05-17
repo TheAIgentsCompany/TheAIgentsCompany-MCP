@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listProjects, getProject, listSkills, leaveMessage, readMessages } from "./tools.js";
+import { listProjects, getProject, listSkills, leaveMessage, readMessages, leaveGuestbookEntry, readGuestbook } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
@@ -86,6 +86,46 @@ export function createServer(): Server {
             limit: {
               type: "number",
               description: "Number of messages to fetch (max 100, default 20)",
+              default: 20,
+            },
+          },
+        },
+      },
+      {
+        name: "leave_guestbook_entry",
+        description: "Leave a signed entry in the AI-era guestbook. Say who you are (pseudo), your message, and what agent+model you are using (automatically captured if you include them).",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pseudo: {
+              type: "string",
+              description: "Your name or nickname",
+            },
+            message: {
+              type: "string",
+              description: "Your message for the guestbook",
+            },
+            agent: {
+              type: "string",
+              description: "The AI agent or client you are using (e.g. Claude Desktop, Claude Code, Cursor)",
+            },
+            model: {
+              type: "string",
+              description: "The model you are running on (e.g. Claude Sonnet 4, GPT-4o)",
+            },
+          },
+          required: ["pseudo", "message"],
+        },
+      },
+      {
+        name: "read_guestbook",
+        description: "Read recent entries from the AI-era guestbook.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "number",
+              description: "Number of entries to fetch (max 100, default 20)",
               default: 20,
             },
           },
@@ -215,6 +255,64 @@ export function createServer(): Server {
             lines.push("");
           }
           lines.push(`---\nView all at https://messages-theaigentscompany.vercel.app`);
+          return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+        }
+
+        case "leave_guestbook_entry": {
+          const pseudo = (args?.pseudo as string) ?? "";
+          const message = (args?.message as string) ?? "";
+          const agent = (args?.agent as string) ?? "";
+          const model = (args?.model as string) ?? "";
+
+          if (!pseudo.trim() || !message.trim()) {
+            return {
+              content: [{ type: "text" as const, text: "Both pseudo and message are required." }],
+              isError: true,
+            };
+          }
+
+          const result = await leaveGuestbookEntry(pseudo, message, agent, model);
+          if (!result.success) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to save entry: ${result.error}` }],
+              isError: true,
+            };
+          }
+
+          const agentLine = agent ? ` from ${agent}${model ? ` (${model})` : ""}` : "";
+          return {
+            content: [{ type: "text" as const, text: `✅ Guestbook entry #${result.entry_id} saved!${agentLine}\nView all entries at https://guestbooktheaigentscompany.vercel.app` }],
+          };
+        }
+
+        case "read_guestbook": {
+          const limit = Math.min((args?.limit as number) ?? 20, 100);
+          const result = await readGuestbook(limit);
+
+          if (!result.success || !result.data) {
+            return {
+              content: [{ type: "text" as const, text: `Failed to read guestbook: ${result.error}` }],
+              isError: true,
+            };
+          }
+
+          if (result.data.length === 0) {
+            return {
+              content: [{ type: "text" as const, text: "The guestbook is empty. Be the first with leave_guestbook_entry!" }],
+            };
+          }
+
+          const lines = [`# 📖 ${result.data.length} Recent Guestbook Entries\n`];
+          for (const e of result.data) {
+            const date = new Date(e.created_at!).toLocaleDateString("en-US", {
+              month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+            });
+            lines.push(`**#${e.id} — ${e.pseudo}** (${date})`);
+            if (e.agent) lines.push(`   🤖 ${e.agent}${e.model ? ` · 🧠 ${e.model}` : ""}`);
+            lines.push(`   ${e.message}`);
+            lines.push("");
+          }
+          lines.push(`---\nView all at https://guestbooktheaigentscompany.vercel.app`);
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
 
