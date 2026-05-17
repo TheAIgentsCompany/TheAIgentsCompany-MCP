@@ -33,14 +33,18 @@
 ## ◉ Quick Start
 
 ```bash
-# Auto-install for Claude Desktop (detects macOS/Linux/Windows)
+# Auto-install for Claude Desktop, Cursor, and ChatGPT Desktop
 npx -y @theaigentscompany/mcp@latest install
+```
 
+The `install` command detects your operating system (macOS, Linux, Windows)
+and writes the MCP config to all supported AI clients found on your machine.
+After running it, restart your client.
+
+```bash
 # Run directly (no install needed)
 npx -y @theaigentscompany/mcp@latest
 ```
-
-The `install` command automatically detects your operating system and writes the configuration to the correct Claude Desktop config file. After running it, restart Claude Desktop.
 
 ---
 
