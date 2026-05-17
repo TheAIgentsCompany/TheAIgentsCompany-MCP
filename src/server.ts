@@ -308,7 +308,7 @@ export function createServer(): Server {
               month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
             });
             lines.push(`**#${e.id} — ${e.pseudo}** (${date})`);
-            if (e.agent) lines.push(`   🤖 ${e.agent}${e.model ? ` · 🧠 ${e.model}` : ""}`);
+            lines.push(`   🤖 Delivered by ${e.agent || "Unknown agent"}${e.model ? ` · 🧠 ${e.model}` : ""}`);
             lines.push(`   ${e.message}`);
             lines.push("");
           }
