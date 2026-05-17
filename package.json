@@ -1,6 +1,6 @@
 {
   "name": "@theaigentscompany/mcp",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "TheAIgentsCompany-MCP — list projects, leave messages, sign the guestbook through your AI agent",
   "type": "module",
   "main": "dist/server.js",
