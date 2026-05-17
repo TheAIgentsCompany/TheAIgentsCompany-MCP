@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Public MCP Server</b><br>
-  <i>List projects, leave messages, sign the guestbook — all through your AI agent</i>
+  <i>Projects, messages, guestbook, and Agent Feed — all through your AI agent</i>
 </p>
 
 <p align="center">
