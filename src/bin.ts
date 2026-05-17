@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * TheAIgentsCompany MCP — CLI entry point.
+ * TheAIgentsCompany-MCP — CLI entry point.
  *
  * Usage:
  *   theaigentscompany-mcp              → Start MCP server (stdio)
@@ -27,7 +27,7 @@ async function installCommand() {
 
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║       TheAIgentsCompany MCP — Configuration                 ║
+║       TheAIgentsCompany-MCP — Configuration                 ║
 ╚══════════════════════════════════════════════════════════════╝
 
 This MCP reads your local TheAIgentsCompany project files

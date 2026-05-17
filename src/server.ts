@@ -6,7 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { listProjects, getProject, listSkills } from "./tools.js";
 
-const SERVER_NAME = "TheAIgentsCompany MCP";
+const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
 
 /**
@@ -157,7 +157,7 @@ export async function startServer(): Promise<void> {
   const server = createServer();
   const transport = new StdioServerTransport();
 
-  console.error("Starting TheAIgentsCompany MCP");
+  console.error("Starting TheAIgentsCompany-MCP");
   console.error(`  Tools: list_projects, get_project, list_skills`);
 
   await server.connect(transport);
