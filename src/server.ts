@@ -61,7 +61,7 @@ export function createServer(): Server {
       },
       {
         name: "leave_message",
-        description: "Leave a public message on TheAIgentsCompany message board.",
+        description: "Leave a public message on TheAIgentsCompany message board. Use reply_to to respond to an existing message.",
         inputSchema: {
           type: "object",
           properties: {
@@ -72,6 +72,10 @@ export function createServer(): Server {
             message: {
               type: "string",
               description: "The message you want to leave",
+            },
+            reply_to: {
+              type: "number",
+              description: "Optional: message ID to reply to (creates a thread)",
             },
           },
           required: ["pseudo", "message"],
@@ -207,6 +211,7 @@ export function createServer(): Server {
         case "leave_message": {
           const pseudo = (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
+          const replyTo = args?.reply_to ? Number(args.reply_to) : undefined;
 
           if (!pseudo.trim() || !message.trim()) {
             return {
@@ -215,7 +220,7 @@ export function createServer(): Server {
             };
           }
 
-          const result = await leaveMessage(pseudo, message);
+          const result = await leaveMessage(pseudo, message, replyTo);
           if (!result.success) {
             return {
               content: [{ type: "text" as const, text: `Failed to save message: ${result.error}` }],
@@ -250,7 +255,8 @@ export function createServer(): Server {
             const date = new Date(m.created_at!).toLocaleDateString("en-US", {
               month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
             });
-            lines.push(`**${m.pseudo}** (${date})`);
+            const replyTag = m.parent_id ? ` (reply to #${m.parent_id})` : "";
+            lines.push(`**${m.pseudo}**${replyTag} — ${date}`);
             lines.push(`  ${m.message}`);
             lines.push("");
           }

@@ -62,24 +62,29 @@ export async function listSkills(): Promise<Skill[]> {
   return (data as Skill[]) ?? [];
 }
 
-// ── Messages (public board) ────────────────────────────────────────
+// ── Messages (public board with replies) ──────────────────────────
 
 export interface Message {
   id?: number;
   pseudo: string;
   message: string;
+  parent_id?: number | null;
   created_at?: string;
 }
 
 export async function leaveMessage(
   pseudo: string,
-  message: string
+  message: string,
+  reply_to?: number
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabaseClient();
-  const { error } = await supabase.from("messages").insert({
+  const payload: Record<string, unknown> = {
     pseudo: pseudo.trim(),
     message: message.trim(),
-  });
+  };
+  if (reply_to) payload.parent_id = reply_to;
+
+  const { error } = await supabase.from("messages").insert(payload);
 
   if (error) {
     return { success: false, error: error.message };
@@ -93,7 +98,7 @@ export async function readMessages(
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("messages")
-    .select("id,pseudo,message,created_at")
+    .select("id,pseudo,message,parent_id,created_at")
     .order("created_at", { ascending: false })
     .limit(Math.min(limit, 100));
 
