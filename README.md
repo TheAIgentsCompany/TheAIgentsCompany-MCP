@@ -25,7 +25,8 @@
 | **list_skills** | List available Hermes skills with short descriptions |
 | **leave_message** | Leave a public message on the community board |
 | **read_messages** | Read recent messages from the community board |
-
+| **leave_guestbook_entry** | Leave a signed entry in the AI-era guestbook (auto-captures agent + model) |
+| **read_guestbook** | Read recent entries from the guestbook |
 Minimal and public-safe — no internal architecture, decisions, or tasks exposed.
 
 ---
