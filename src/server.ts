@@ -4,7 +4,6 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { getConfig } from "./config.js";
 import { listProjects, getProject, listSkills } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany MCP";
@@ -67,13 +66,11 @@ export function createServer(): Server {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    const config = getConfig();
-
     try {
       switch (name) {
         case "list_projects": {
           const status = (args?.status as string) ?? "";
-          let projects = listProjects(config.projectsDir);
+          let projects = await listProjects();
           if (status) {
             projects = projects.filter(
               (p) => p.status.toLowerCase() === status.toLowerCase()
@@ -107,7 +104,7 @@ export function createServer(): Server {
               isError: true,
             };
           }
-          const p = getProject(config.projectsDir, projectId);
+          const p = await getProject(projectId);
           if (!p) {
             return { content: [{ type: "text" as const, text: `Project '${projectId}' not found.` }] };
           }
@@ -124,7 +121,7 @@ export function createServer(): Server {
         }
 
         case "list_skills": {
-          const skills = await listSkills(config.skillsDir);
+          const skills = await listSkills();
           if (skills.length === 0) {
             return { content: [{ type: "text" as const, text: "No skills found." }] };
           }
