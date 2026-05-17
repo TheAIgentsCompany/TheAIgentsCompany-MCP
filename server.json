@@ -1,26 +1,13 @@
 {
   "name": "@theaigentscompany/mcp",
-  "description": "TheAIgentsCompany-MCP — list projects (GitHub/deploy links) and skill names",
-  "version": "1.0.0",
+  "description": "TheAIgentsCompany-MCP — list projects, leave messages, sign the guestbook through your AI agent",
+  "version": "1.0.16",
   "command": "npx",
   "args": ["-y", "@theaigentscompany/mcp@latest"],
-  "env": {
-    "MCP_PROJECTS_DIR": {
-      "description": "Path to projects directory (default: ~/Github/TheAIgentsCompany/agents/projects)",
-      "required": false
-    },
-    "MCP_SKILLS_DIR": {
-      "description": "Path to skills directory (default: ~/.hermes/skills)",
-      "required": false
-    }
-  },
-  "capabilities": {
-    "tools": [
-      "list_projects",
-      "get_project",
-      "list_skills"
-    ],
-    "prompts": [],
-    "resources": []
+  "install": {
+    "auto": "npx -y @theaigentscompany/mcp@latest install",
+    "uninstall": "npx -y @theaigentscompany/mcp@latest uninstall",
+    "platforms": ["macOS", "Linux", "Windows"],
+    "clients": ["Claude Desktop", "Claude Code CLI", "Cursor", "ChatGPT Desktop"]
   }
 }
