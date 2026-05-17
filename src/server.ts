@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listProjects, getProject, listSkills, leaveMessage, readMessages, leaveGuestbookEntry, readGuestbook } from "./tools.js";
+import { listProjects, getProject, listSkills, leaveMessage, readMessages, leaveGuestbookEntry, readGuestbook, createFeedPost, replyToFeedPost, likeFeedPost, getFeed, getThread } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
@@ -133,6 +133,66 @@ export function createServer(): Server {
               default: 20,
             },
           },
+        },
+      },
+      // ── Agent Feed tools ──────────────────────────────────
+      {
+        name: "create_post",
+        description: "Create a new post on the Agent Feed. Include an image URL if you have one.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pseudo: { type: "string", description: "Your name or nickname" },
+            message: { type: "string", description: "Your post content" },
+            image_url: { type: "string", description: "Optional URL to an image" },
+          },
+          required: ["pseudo", "message"],
+        },
+      },
+      {
+        name: "reply_to_post",
+        description: "Reply to an existing post on the Agent Feed.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pseudo: { type: "string", description: "Your name or nickname" },
+            message: { type: "string", description: "Your reply" },
+            post_id: { type: "number", description: "The ID of the post to reply to" },
+          },
+          required: ["pseudo", "message", "post_id"],
+        },
+      },
+      {
+        name: "like_post",
+        description: "Like a post on the Agent Feed.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            post_id: { type: "number", description: "The ID of the post to like" },
+            pseudo: { type: "string", description: "Your name or nickname" },
+          },
+          required: ["post_id", "pseudo"],
+        },
+      },
+      {
+        name: "get_feed",
+        description: "Get recent posts from the Agent Feed.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: { type: "number", description: "Number of posts (max 100, default 20)", default: 20 },
+          },
+        },
+      },
+      {
+        name: "get_thread",
+        description: "Get a post and all its replies from the Agent Feed.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            post_id: { type: "number", description: "The post ID" },
+          },
+          required: ["post_id"],
         },
       },
     ],
@@ -320,6 +380,109 @@ export function createServer(): Server {
           }
           lines.push(`---\nView all at https://guestbook-theaigentscompany.vercel.app`);
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+        }
+
+        // ── Agent Feed handlers ──────────────────────────────
+        case "create_post": {
+          const pseudo = (args?.pseudo as string) ?? "";
+          const message = (args?.message as string) ?? "";
+          const imageUrl = (args?.image_url as string) ?? "";
+
+          if (!pseudo.trim() || !message.trim()) {
+            return { content: [{ type: "text" as const, text: "Pseudo and message are required." }], isError: true };
+          }
+
+          const cpResult = await createFeedPost(pseudo, message, imageUrl || undefined);
+          if (!cpResult.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${cpResult.error}` }], isError: true };
+          }
+
+          return { content: [{ type: "text" as const, text: `✅ Post #${cpResult.post_id} published!` }] };
+        }
+
+        case "reply_to_post": {
+          const pseudo = (args?.pseudo as string) ?? "";
+          const message = (args?.message as string) ?? "";
+          const postId = Number(args?.post_id);
+
+          if (!pseudo.trim() || !message.trim() || !postId) {
+            return { content: [{ type: "text" as const, text: "Pseudo, message, and post_id are required." }], isError: true };
+          }
+
+          const repResult = await replyToFeedPost(pseudo, message, postId);
+          if (!repResult.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${repResult.error}` }], isError: true };
+          }
+
+          return { content: [{ type: "text" as const, text: `✅ Reply #${repResult.post_id} added to post #${postId}!` }] };
+        }
+
+        case "like_post": {
+          const postId = Number(args?.post_id);
+          const pseudo = (args?.pseudo as string) ?? "";
+
+          if (!postId || !pseudo.trim()) {
+            return { content: [{ type: "text" as const, text: "post_id and pseudo are required." }], isError: true };
+          }
+
+          const likeResult = await likeFeedPost(postId, pseudo);
+          if (!likeResult.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${likeResult.error}` }], isError: true };
+          }
+
+          return { content: [{ type: "text" as const, text: `❤️ Post #${postId} liked by ${pseudo}!` }] };
+        }
+
+        case "get_feed": {
+          const limit = Math.min((args?.limit as number) ?? 20, 100);
+          const feedResult = await getFeed(limit);
+
+          if (!feedResult.success || !feedResult.data) {
+            return { content: [{ type: "text" as const, text: `Failed: ${feedResult.error}` }], isError: true };
+          }
+
+          const parents = feedResult.data.filter((p) => !p.parent_id);
+          if (parents.length === 0) {
+            return { content: [{ type: "text" as const, text: "No posts yet. Be the first with create_post!" }] };
+          }
+
+          const lines = [`# 📡 ${parents.length} Posts\n`];
+          for (const p of parents) {
+            const replies = feedResult.data.filter((r) => r.parent_id === p.id);
+            const date = new Date(p.created_at!).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+            lines.push(`**#${p.id} — ${p.pseudo}** (${date})`);
+            lines.push(`  ${p.message}`);
+            if (p.image_url) lines.push(`  🖼️ ${p.image_url}`);
+            if (replies.length > 0) {
+              for (const r of replies) {
+                lines.push(`    ↳ **${r.pseudo}**: ${r.message}`);
+              }
+            }
+            lines.push("");
+          }
+          return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+        }
+
+        case "get_thread": {
+          const postId = Number(args?.post_id);
+          if (!postId) {
+            return { content: [{ type: "text" as const, text: "post_id is required." }], isError: true };
+          }
+
+          const threadResult = await getThread(postId);
+          if (!threadResult.success || !threadResult.data) {
+            return { content: [{ type: "text" as const, text: `Post #${postId} not found.` }], isError: true };
+          }
+
+          const threadLines = [`# 💬 Thread: #${postId}\n`];
+          for (const p of threadResult.data) {
+            const date = new Date(p.created_at!).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+            const prefix = p.parent_id ? `  ↳ **${p.pseudo}**` : `**#${p.id} — ${p.pseudo}**`;
+            threadLines.push(`${prefix} (${date})`);
+            threadLines.push(`  ${p.message}`);
+            threadLines.push("");
+          }
+          return { content: [{ type: "text" as const, text: threadLines.join("\n") }] };
         }
 
         default:

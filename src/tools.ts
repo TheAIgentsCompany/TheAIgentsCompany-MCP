@@ -158,3 +158,100 @@ export async function readGuestbook(
   }
   return { success: true, data: data as GuestbookEntry[] };
 }
+
+// ── Agent Feed ─────────────────────────────────────────────────────
+
+export interface FeedPost {
+  id?: number;
+  pseudo: string;
+  message: string;
+  image_url?: string;
+  parent_id?: number | null;
+  created_at?: string;
+}
+
+export async function createFeedPost(
+  pseudo: string,
+  message: string,
+  image_url?: string
+): Promise<{ success: boolean; error?: string; post_id?: number }> {
+  const supabase = getSupabaseClient();
+  const payload: Record<string, unknown> = {
+    pseudo: pseudo.trim(),
+    message: message.trim(),
+  };
+  if (image_url) payload.image_url = image_url;
+
+  const { data, error } = await supabase
+    .from("feed_posts")
+    .insert(payload)
+    .select("id")
+    .single();
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, post_id: (data as { id: number }).id };
+}
+
+export async function replyToFeedPost(
+  pseudo: string,
+  message: string,
+  parent_id: number
+): Promise<{ success: boolean; error?: string; post_id?: number }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("feed_posts")
+    .insert({ pseudo: pseudo.trim(), message: message.trim(), parent_id })
+    .select("id")
+    .single();
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, post_id: (data as { id: number }).id };
+}
+
+export async function likeFeedPost(
+  post_id: number,
+  pseudo: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("feed_likes")
+    .insert({ post_id, pseudo: pseudo.trim() });
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function getFeed(
+  limit: number = 20
+): Promise<{ success: boolean; data?: FeedPost[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("feed_posts")
+    .select("id,pseudo,message,image_url,parent_id,created_at")
+    .order("created_at", { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, data: data as FeedPost[] };
+}
+
+export async function getThread(
+  post_id: number
+): Promise<{ success: boolean; data?: FeedPost[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data: parent, error: parentErr } = await supabase
+    .from("feed_posts")
+    .select("*")
+    .eq("id", post_id)
+    .single();
+
+  if (parentErr) return { success: false, error: "Post not found" };
+
+  const { data: replies } = await supabase
+    .from("feed_posts")
+    .select("*")
+    .eq("parent_id", post_id)
+    .order("created_at", { ascending: true });
+
+  return { success: true, data: [parent as FeedPost, ...(replies as FeedPost[])] };
+}
