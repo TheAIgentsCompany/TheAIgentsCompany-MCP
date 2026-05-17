@@ -184,7 +184,7 @@ export function createServer(): Server {
           }
 
           return {
-            content: [{ type: "text" as const, text: `✅ Message saved! View it at https://messages-board.vercel.app` }],
+            content: [{ type: "text" as const, text: `✅ Message saved! View it at https://messages-theaigentscompany.vercel.app` }],
           };
         }
 
@@ -214,7 +214,7 @@ export function createServer(): Server {
             lines.push(`  ${m.message}`);
             lines.push("");
           }
-          lines.push(`---\nView all at https://messages-board.vercel.app`);
+          lines.push(`---\nView all at https://messages-theaigentscompany.vercel.app`);
           return { content: [{ type: "text" as const, text: lines.join("\n") }] };
         }
 

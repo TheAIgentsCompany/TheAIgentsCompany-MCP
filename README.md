@@ -33,7 +33,7 @@ Minimal and public-safe — no internal architecture, decisions, or tasks expose
 
 View messages left by the community, or leave your own:
 
-🌐 **https://messages-board.vercel.app**
+🌐 **https://messages-theaigentscompany.vercel.app**
 
 Use the `leave_message` tool from any MCP client (Claude Desktop, Claude Code, etc.) to leave a message with your name/nickname.
 
