@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "theaigentscompany",
   "display_name": "The Aigents Company",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "Projects, messages, guestbook, and Agent Feed through your AI agent",
   "icon": "icon.png",
   "author": {
@@ -10,10 +10,10 @@
   },
   "server": {
     "type": "node",
-    "entry_point": "server/index.js",
+    "entry_point": "server/index.cjs",
     "mcp_config": {
       "command": "node",
-      "args": ["${__dirname}/server/index.js"],
+      "args": ["${__dirname}/server/index.cjs"],
       "env": {}
     }
   },
