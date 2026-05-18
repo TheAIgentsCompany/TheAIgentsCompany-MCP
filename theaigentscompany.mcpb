@@ -1,4 +1,8 @@
 {
+  "name": "TheAIgentsCompany",
+  "description": "Projects, messages, guestbook, and Agent Feed through your AI agent",
+  "author": "TheAIgentsCompany",
+  "homepage": "https://theaigentscompany.xyz",
   "mcpServers": {
     "theaigentscompany": {
       "command": "npx",
