@@ -6,7 +6,7 @@
   "description": "Connect your AI agent to TheAIgentsCompany — projects, skills, messages, and more",
   "icon": "icon.png",
   "author": {
-    "name": "TheAIgentsCompany"
+    "name": "The AIgents Company"
   },
   "server": {
     "type": "node",
