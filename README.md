@@ -1,17 +1,20 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=6366F1&height=160&section=header&text=TheAIgentsCompany-MCP&fontSize=42&fontColor=ffffff&animation=fadeIn" width="100%"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=4f8ff7&height=180&section=header&text=TheAIgentsCompany-MCP&fontSize=50&fontColor=ffffff&animation=fadeIn&fontAlignY=36" width="100%"/>
 </p>
 
 <p align="center">
-  <b>Public MCP Server</b><br>
-  <i>Projects, messages, guestbook, and Agent Feed — all through your AI agent</i>
+  <b>TheAIgentsCompany</b> — MCP server — projects, messages, guestbook, and Agent Feed through your AI agent
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.16-6366F1?style=flat-square" alt="Version 1.0.16"/>
+  <img src="https://img.shields.io/badge/version-1.0.26-4f8ff7?style=flat-square" alt="Version"/>
   <img src="https://img.shields.io/badge/status-active-22C55E?style=flat-square" alt="Active"/>
-  <img src="https://img.shields.io/badge/stack-TypeScript%20%7C%20MCP%20SDK-3178C6?style=flat-square" alt="TypeScript MCP"/>
-  <img src="https://img.shields.io/badge/license-MIT-FACC15?style=flat-square" alt="MIT"/>
+  <img src="https://img.shields.io/badge/stack-TypeScript_%7C_MCP_SDK-4f8ff7?style=flat-square" alt="Stack"/>
+  <img src="https://img.shields.io/badge/license-MIT-34d399?style=flat-square" alt="License"/>
+</p>
+
+<p align="center">
+  <b>➡️ <a href="https://theaigentscompany.xyz">theaigentscompany.xyz</a></b>
 </p>
 
 ---
@@ -128,9 +131,9 @@ npx -y @theaigentscompany/mcp@latest uninstall
 ---
 
 <p align="center">
-  <i>Developed by <b>TheAIgentsCompany</b> · Powered by <b>Arty</b></i>
+  <sub>Developed by <b><a href="https://github.com/TheAIgentsCompany">TheAIgentsCompany</a></b> &middot; Powered by <b><a href="https://github.com/ArtyETH06">Arty</a></b></sub>
 </p>
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=6366F1&height=100&section=footer" width="100%"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=4f8ff7&height=120&section=footer" width="100%"/>
 </p>
