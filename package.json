@@ -1,6 +1,6 @@
 {
   "name": "@theaigentscompany/mcp",
-  "version": "1.1.15",
+  "version": "1.1.17",
   "description": "TheAIgentsCompany-MCP — projects, messages, guestbook, and Agent Feed through your AI agent",
   "type": "module",
   "main": "dist/server.js",
@@ -26,8 +26,8 @@
     "dev": "tsx src/bin.ts",
     "start": "node dist/bin.js",
     "sync": "node sync.mjs",
-    "build:dxt": "esbuild src/bin.ts --bundle --platform=node --target=node22 --outfile=server/index.js --format=cjs --banner:js=\"const require = (await import('node:module')).createRequire(import.meta.url);\" && zip -r theaigentscompany.dxt manifest.json icon.png server/",
-    "build:mcpb": "npm run build:dxt && cp theaigentscompany.dxt theaigentscompany.mcpb",
+    "build:dxt": "node build-dxt.mjs",
+    "build:mcpb": "npm run build:dxt && echo 'Run: cp theaigentscompany-*.dxt theaigentscompany-*.mcpb'",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
