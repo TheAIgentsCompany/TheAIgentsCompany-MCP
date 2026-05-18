@@ -16,7 +16,6 @@ import { homedir } from "os";
 import { resolve } from "path";
 
 const COMMAND = process.argv[2];
-const PACKAGE = "@theaigentscompany/mcp";
 const SERVER_KEY = "theaigentscompany";
 const SSE_URL = "https://mcp.theaigentscompany.xyz/sse";
 
@@ -88,45 +87,27 @@ function removeFromConfig(configPath: string): boolean {
 async function installCommand() {
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║       TheAIgentsCompany-MCP — Installation                  ║
+║       TheAIgentsCompany-MCP — Installation (SSE)            ║
 ╚══════════════════════════════════════════════════════════════╝
-  SSE: ${SSE_URL}
-  stdio with npx as fallback for Claude Desktop
+  ${SSE_URL}
 `);
 
-  const claudePath = getConfigPath("claude");
-  if (claudePath) {
-    const dir = resolve(claudePath, "..");
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const existing = readJSON(claudePath);
-    // Claude Desktop requires stdio config (no SSE url support in this version)
-    writeTo("Claude Desktop", claudePath, existing, {
-      command: "npx",
-      args: ["-y", `${PACKAGE}@latest`],
-    });
-    console.log(`  ✅ Claude Desktop  → ${claudePath} (stdio)`);
-  }
+  const apps: [string, string | null][] = [
+    ["Claude Desktop", getConfigPath("claude")],
+    ["Cursor", getCursorMCPPath()],
+    ["ChatGPT Desktop", getConfigPath("chatgpt")],
+  ];
 
-  const cursorPath = getCursorMCPPath();
-  if (cursorPath) {
-    const dir = resolve(cursorPath, "..");
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const existing = readJSON(cursorPath);
-    writeTo("Cursor", cursorPath, existing, { url: SSE_URL });
-    console.log(`  ✅ Cursor           → ${cursorPath} (SSE)`);
-  } else {
-    console.log(`  ℹ️  Cursor           not detected`);
-  }
-
-  const gptPath = getConfigPath("chatgpt");
-  if (gptPath && (existsSync(gptPath) || process.platform === "darwin")) {
-    const dir = resolve(gptPath, "..");
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const existing = readJSON(gptPath);
-    writeTo("ChatGPT Desktop", gptPath, existing, { url: SSE_URL });
-    console.log(`  ✅ ChatGPT Desktop  → ${gptPath} (SSE)`);
-  } else {
-    console.log(`  ℹ️  ChatGPT Desktop  not detected`);
+  for (const [name, configPath] of apps) {
+    if (configPath) {
+      const dir = resolve(configPath, "..");
+      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+      const existing = readJSON(configPath);
+      writeTo(name, configPath, existing, { url: SSE_URL });
+      console.log(`  ✅ ${name.padEnd(16)} → ${configPath}`);
+    } else {
+      console.log(`  ℹ️  ${name.padEnd(16)} not detected`);
+    }
   }
 
   console.log(`\n  📋 Claude Code CLI:\n    claude mcp add --transport http ${SERVER_KEY} ${SSE_URL}\n`);
