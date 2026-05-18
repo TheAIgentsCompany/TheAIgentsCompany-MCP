@@ -7,7 +7,6 @@
  *   theaigentscompany-mcp                   Start MCP server (stdio)
  *   theaigentscompany-mcp install           Write config to Claude/Cursor/ChatGPT
  *   theaigentscompany-mcp uninstall         Remove config
- *   theaigentscompany-mcp export            Write mcp.json to current directory
  *   theaigentscompany-mcp sse [port]        Start HTTP/SSE server
  */
 
@@ -124,20 +123,8 @@ async function installCommand() {
     console.log(`  ℹ️  ChatGPT Desktop  not detected`);
   }
 
-  console.log(`\n  📋 Exportable file:\n    npx -y ${PACKAGE}@latest export\n`);
+  console.log(`\n  📋 .mcpb bundle:\n    https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP/releases\n    Download the latest bundle.mcpb and open it in Claude Desktop.\n`);
   console.log(`  ✅ Done! Restart your AI client.`);
-}
-
-async function exportCommand() {
-  const config = {
-    mcpServers: {
-      [SERVER_KEY]: STDIO_CONFIG,
-    },
-  };
-  const outputPath = resolve(process.cwd(), "theaigentscompany.mcpb");
-  writeFileSync(outputPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
-  console.log(`\n  ✅ Exported to ${outputPath}\n`);
-  console.log(`  Open the file in Claude Desktop to auto-install.\n`);
 }
 
 async function uninstallCommand() {
@@ -169,8 +156,6 @@ async function main() {
     await installCommand();
   } else if (COMMAND === "uninstall") {
     await uninstallCommand();
-  } else if (COMMAND === "export") {
-    await exportCommand();
   } else if (COMMAND === "sse") {
     const port = Number(process.argv[3]) || 3010;
     await startHttpServer(port);
@@ -181,13 +166,11 @@ TheAIgentsCompany-MCP
 Usage:
   theaigentscompany-mcp               Start MCP server (stdio)
   theaigentscompany-mcp install       Auto-detect OS, write config to detected apps
-  theaigentscompany-mcp export        Write theaigentscompany.mcp.json for import
   theaigentscompany-mcp uninstall     Remove config
   theaigentscompany-mcp sse [port]    Start HTTP/SSE server (default port 3010)
 
 Examples:
   npx -y @theaigentscompany/mcp@latest install
-  npx -y @theaigentscompany/mcp@latest export
     `);
   } else {
     await startServer();
