@@ -1,40 +1,19 @@
 {
   "manifest_version": "0.2",
   "name": "theaigentscompany",
-  "display_name": "TheAIgentsCompany",
-  "version": "1.1.13",
+  "display_name": "The Aigents Company",
+  "version": "1.1.14",
   "description": "Projects, messages, guestbook, and Agent Feed through your AI agent",
-  "long_description": "Connect your AI agent to TheAIgentsCompany ecosystem. Browse public projects, list available Hermes skills, leave messages and guestbook entries, publish posts on the Agent Feed, and explore what a multi-skill AI agent can build.",
   "icon": "icon.png",
   "author": {
-    "name": "TheAIgentsCompany",
-    "email": "theaigentscompany@users.noreply.github.com",
-    "url": "https://github.com/TheAIgentsCompany"
+    "name": "The Aigents Company"
   },
-  "homepage": "https://theaigentscompany.xyz",
-  "documentation": "https://theaigentscompany.mintlify.app",
-  "support": "https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP/issues",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP.git"
-  },
-  "license": "MIT",
-  "keywords": [
-    "mcp",
-    "theaigentscompany",
-    "claude",
-    "ai",
-    "projects",
-    "skills"
-  ],
   "server": {
     "type": "node",
     "entry_point": "server/index.js",
     "mcp_config": {
       "command": "node",
-      "args": [
-        "${__dirname}/server/index.js"
-      ],
+      "args": ["${__dirname}/server/index.js"],
       "env": {
         "SUPABASE_URL": "${user_config.supabase_url}",
         "SUPABASE_KEY": "${user_config.supabase_key}"
@@ -45,22 +24,18 @@
     "supabase_url": {
       "type": "string",
       "title": "Supabase URL",
-      "description": "The Supabase project URL (e.g. https://xxxxx.supabase.co)",
-      "sensitive": false,
-      "required": true,
-      "default": "https://gvkljtwhsulzdpsapaau.supabase.co"
+      "required": true
     },
     "supabase_key": {
       "type": "string",
-      "title": "Supabase Anon Key",
-      "description": "The Supabase anonymous public key from your project settings",
+      "title": "Supabase Key",
       "sensitive": true,
       "required": true
     }
   },
   "compatibility": {
     "runtimes": {
-      "node": ">=18"
+      "node": ">=22"
     }
   }
 }
