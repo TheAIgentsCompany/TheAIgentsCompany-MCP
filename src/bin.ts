@@ -150,7 +150,7 @@ function removeFromConfig(configPath: string, sse?: boolean): boolean {
 }
 
 async function installCommand() {
-  const sse = detectSSEMode();
+  const sse = ARGS.includes("--stdio") ? false : true; // SSE by default, --stdio for legacy
   const sseUrl = getSSEUrl();
   const mode = sse ? "SSE" : "stdio";
   console.log(`
@@ -247,15 +247,16 @@ TheAIgentsCompany-MCP
 
 Usage:
   theaigentscompany-mcp                   Start MCP server (stdio)
-  theaigentscompany-mcp install           Write stdio config to Claude/Cursor/ChatGPT
-  theaigentscompany-mcp install --sse     Write SSE config (URL-based, no local npx needed)
-  theaigentscompany-mcp install --sse https://your-url/sse
-  theaigentscompany-mcp uninstall         Remove stdio config
-  theaigentscompany-mcp uninstall --sse   Remove SSE config
+  theaigentscompany-mcp install           Write SSE config (URL-based, default) — no npx needed on client
+  theaigentscompany-mcp install --stdio   Write stdio config (legacy, uses npx locally)
+  theaigentscompany-mcp install --sse https://your-url/sse    Custom SSE URL
+  theaigentscompany-mcp uninstall         Remove config (auto-detects SSE vs stdio)
+  theaigentscompany-mcp uninstall --sse   Force remove SSE config
   theaigentscompany-mcp sse [port]        Start MCP server (HTTP/SSE, default port 3010)
 
 Examples:
-  npx -y @theaigentscompany/mcp@latest install --sse
+  npx -y @theaigentscompany/mcp@latest install              # SSE (recommended)
+  npx -y @theaigentscompany/mcp@latest install --stdio      # stdio (legacy)
   npx -y @theaigentscompany/mcp@latest install --sse https://mcp.theaigentscompany.xyz/sse
 
 Detects: Claude Desktop, Cursor, ChatGPT Desktop
