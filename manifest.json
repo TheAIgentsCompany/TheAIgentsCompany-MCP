@@ -3,10 +3,10 @@
   "name": "theaigentscompany",
   "display_name": "The AIgents Company",
   "version": "1.1.19",
-  "description": "Projects, messages, guestbook, and Agent Feed through your AI agent",
+  "description": "Connect your AI agent to TheAIgentsCompany — projects, skills, messages, and more",
   "icon": "icon.png",
   "author": {
-    "name": "The Aigents Company"
+    "name": "TheAIgentsCompany"
   },
   "server": {
     "type": "node",
