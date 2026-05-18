@@ -19,6 +19,45 @@
 
 ---
 
+## ◉ HTTP/SSE Mode
+
+Run the MCP server as a persistent HTTP service:
+
+```bash
+# Start with SSE transport (default port 3000)
+npx -y @theaigentscompany/mcp@latest sse
+
+# Custom port
+npx -y @theaigentscompany/mcp@latest sse 8080
+```
+
+The server exposes:
+- **`GET /sse`** — SSE endpoint (clients connect here)
+- **`POST /messages`** — Client responses
+
+### Cloudflare Tunnel (persistent, recommended)
+
+Expose your local SSE server at a public URL via Cloudflare Tunnel:
+
+```bash
+# 1. Install cloudflared
+# 2. Authenticate and create tunnel
+cloudflared tunnel login
+cloudflared tunnel create theaigentscompany-mcp
+cloudflared tunnel route dns theaigentscompany-mcp mcp.theaigentscompany.xyz
+
+# 3. Copy config (see cloudflared.example.yml)
+# 4. Start the MCP server
+npx -y @theaigentscompany/mcp@latest sse
+
+# 5. Start the tunnel (separate terminal)
+cloudflared tunnel run theaigentscompany-mcp
+
+# → Clients connect to: https://mcp.theaigentscompany.xyz/sse
+```
+
+---
+
 ## ✦ Tools
 
 | Tool | Description |
