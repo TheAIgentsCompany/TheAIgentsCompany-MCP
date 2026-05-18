@@ -9,7 +9,7 @@
     "args": ["-y", "@theaigentscompany/mcp@latest", "sse"],
     "endpoint": "/sse",
     "messages": "/messages",
-    "defaultPort": 3000,
+    "defaultPort": 3010,
     "tunnel": {
       "domain": "mcp.theaigentscompany.xyz",
       "provider": "cloudflared",
