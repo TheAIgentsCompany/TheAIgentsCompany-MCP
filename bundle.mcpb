@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "theaigentscompany": {
+      "command": "npx",
+      "args": ["-y", "@theaigentscompany/mcp@latest"],
+      "env": {
+        "SUPABASE_URL": "https://your-project.supabase.co",
+        "SUPABASE_KEY": "<your-supabase-anon-key>"
+      }
+    }
+  }
+}

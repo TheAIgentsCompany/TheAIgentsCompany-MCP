@@ -134,10 +134,10 @@ async function exportCommand() {
       [SERVER_KEY]: STDIO_CONFIG,
     },
   };
-  const outputPath = resolve(process.cwd(), "theaigentscompany.mcp.json");
-  writeFileSync(outputPath, JSON.stringify(config, null, 2), "utf-8");
+  const outputPath = resolve(process.cwd(), "theaigentscompany.mcpb");
+  writeFileSync(outputPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
   console.log(`\n  ✅ Exported to ${outputPath}\n`);
-  console.log(`  To import in Claude Desktop:\n    Settings → Developer → Import MCP server → select the file\n`);
+  console.log(`  Open the file in Claude Desktop to auto-install.\n`);
 }
 
 async function uninstallCommand() {
