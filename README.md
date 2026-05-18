@@ -19,7 +19,7 @@
 
 ## ◉ Quick Install
 
-Download [`bundle.mcpb`](./bundle.mcpb) (or `npx -y @theaigentscompany/mcp@latest export`) and open it in Claude Desktop to auto-configure the MCP server — no manual setup needed.
+Download [`theaigentscompany.mcpb`](./theaigentscompany.mcpb) and open it in Claude Desktop to auto-configure the MCP server.
 
 Works with Claude Desktop, Cursor, and any MCP-compatible client that supports `.mcpb` files.
 
@@ -30,29 +30,6 @@ npx -y @theaigentscompany/mcp@latest install
 ```
 
 This auto-detects your OS and writes the config to Claude Desktop, Cursor, and ChatGPT Desktop.
-
----
-
-## ◉ Connect
-
-Add this to your MCP client configuration:
-
-```json
-{
-  "mcpServers": {
-    "theaigentscompany": {
-      "url": "https://mcp.theaigentscompany.xyz/sse"
-    }
-  }
-}
-```
-
-Or run once to auto-install for Claude Desktop, Cursor, and ChatGPT Desktop:
-
-```bash
-npx -y @theaigentscompany/mcp@latest install
-```
-
 ---
 
 ## ✦ Tools

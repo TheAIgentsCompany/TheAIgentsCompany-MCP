@@ -123,7 +123,7 @@ async function installCommand() {
     console.log(`  ℹ️  ChatGPT Desktop  not detected`);
   }
 
-  console.log(`\n  📋 .mcpb bundle:\n    https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP/releases\n    Download the latest bundle.mcpb and open it in Claude Desktop.\n`);
+  console.log(`\n  📋 .mcpb bundle:\n    https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP/releases\n    Download theaigentscompany.mcpb and open it in Claude Desktop.\n`);
   console.log(`  ✅ Done! Restart your AI client.`);
 }
 
