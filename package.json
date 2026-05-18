@@ -1,6 +1,6 @@
 {
   "name": "@theaigentscompany/mcp",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "TheAIgentsCompany-MCP — projects, messages, guestbook, and Agent Feed through your AI agent",
   "type": "module",
   "main": "dist/server.js",
