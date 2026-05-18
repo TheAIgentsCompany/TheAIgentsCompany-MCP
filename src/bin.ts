@@ -16,9 +16,8 @@ import { homedir } from "os";
 import { resolve } from "path";
 
 const COMMAND = process.argv[2];
-const ARG_URL = process.argv[3];
 const SERVER_KEY = "theaigentscompany";
-const DEFAULT_SSE_URL = "https://mcp.theaigentscompany.xyz/sse";
+const SSE_URL = "https://mcp.theaigentscompany.xyz/sse";
 
 // ── Config path detection ────────────────────────────────────────
 
@@ -56,8 +55,8 @@ function getCursorMCPPath(): string | null {
   return appPath;
 }
 
-function getSSEConfig(url?: string) {
-  return { url: url || DEFAULT_SSE_URL };
+function getSSEConfig() {
+  return { url: SSE_URL };
 }
 
 function readJSON(path: string): Record<string, unknown> {
@@ -68,9 +67,9 @@ function readJSON(path: string): Record<string, unknown> {
   }
 }
 
-function writeTo(client: string, configPath: string, existing: Record<string, unknown>, url?: string): string {
+function writeTo(client: string, configPath: string, existing: Record<string, unknown>): string {
   const mcpServers = (existing.mcpServers as Record<string, unknown>) ?? {};
-  mcpServers[SERVER_KEY] = getSSEConfig(url);
+  mcpServers[SERVER_KEY] = getSSEConfig();
   existing.mcpServers = mcpServers;
   writeFileSync(configPath, JSON.stringify(existing, null, 2), "utf-8");
   return client;
@@ -90,13 +89,11 @@ function removeFromConfig(configPath: string): boolean {
 }
 
 async function installCommand() {
-  const url = ARG_URL?.startsWith("http") ? ARG_URL : undefined;
-
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║       TheAIgentsCompany-MCP — Installation (SSE)            ║
 ╚══════════════════════════════════════════════════════════════╝
-  URL: ${url || DEFAULT_SSE_URL}
+  ${SSE_URL}
 `);
 
   const apps: [string, string | null][] = [
@@ -110,14 +107,14 @@ async function installCommand() {
       const dir = resolve(configPath, "..");
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
       const existing = readJSON(configPath);
-      writeTo(name, configPath, existing, url);
+      writeTo(name, configPath, existing);
       console.log(`  ✅ ${name.padEnd(16)} → ${configPath}`);
     } else {
       console.log(`  ℹ️  ${name.padEnd(16)} not detected`);
     }
   }
 
-  console.log(`\n  📋 Claude Code CLI:\n    claude mcp add ${SERVER_KEY} --scope user -- ${url || DEFAULT_SSE_URL}\n`);
+  console.log(`\n  📋 Claude Code CLI:\n    claude mcp add ${SERVER_KEY} --scope user -- ${SSE_URL}\n`);
   console.log(`  ✅ Done! Restart your AI client.`);
 }
 
