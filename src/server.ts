@@ -513,10 +513,7 @@ export function createServer(): Server {
  * Start the MCP server with stdio transport.
  */
 export async function startServer(): Promise<void> {
-  const server = new Server(
-    { name: "TheAIgentsCompany-MCP", version: "1.0.0" },
-    { capabilities: { tools: {} } }
-  );
+  const server = createServer();
   const transport = new StdioServerTransport();
 
   console.error("Starting TheAIgentsCompany-MCP");
