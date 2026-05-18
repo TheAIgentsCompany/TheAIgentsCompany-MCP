@@ -29,6 +29,7 @@
     "start": "node dist/bin.js",
     "sync": "node sync.mjs",
     "generate-bundle": "node -e \"const p=require('./package.json');const n='theaigentscompany.mcpb';const c={name:'TheAIgentsCompany',description:'Projects, messages, guestbook, and Agent Feed through your AI agent',homepage:'https://theaigentscompany.xyz',mcpServers:{theaigentscompany:{command:'npx',args:['-y',p.name],env:{SUPABASE_URL:'https://gvkljtwhsulzdpsapaau.supabase.co',SUPABASE_KEY:'<fill-in>'}}}};require('fs').writeFileSync(n,JSON.stringify(c,null,2)+'\\n');console.log(n+' regenerated from',p.name)\"",
+    "build:dxt": "esbuild src/bin.ts --bundle --platform=node --target=node18 --outfile=server/index.js --format=cjs --banner:js=\"const require = (await import('node:module')).createRequire(import.meta.url);\" && zip -r theaigentscompany.dxt manifest.json icon.png README.dxt.md server/",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
