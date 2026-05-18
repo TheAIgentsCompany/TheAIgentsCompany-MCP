@@ -20,14 +20,15 @@
     "server.json",
     "CHANGELOG.md",
     "cloudflared.example.yml",
-    "theaigentscompany.mcpb"
+    "theaigentscompany.mcpb",
+    "theaigentscompany.README.txt"
   ],
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/bin.ts",
     "start": "node dist/bin.js",
     "sync": "node sync.mjs",
-    "generate-bundle": "node -e \"const p=require('./package.json');const n='theaigentscompany.mcpb';const c={mcpServers:{theaigentscompany:{command:'npx',args:['-y',p.name],env:{SUPABASE_URL:'https://gvkljtwhsulzdpsapaau.supabase.co',SUPABASE_KEY:'<fill-in>'}}}};require('fs').writeFileSync(n,JSON.stringify(c,null,2)+'\\n');console.log(n+' regenerated from',p.name)\"",
+    "generate-bundle": "node -e \"const p=require('./package.json');const n='theaigentscompany.mcpb';const c={name:'TheAIgentsCompany',description:'Projects, messages, guestbook, and Agent Feed through your AI agent',homepage:'https://theaigentscompany.xyz',mcpServers:{theaigentscompany:{command:'npx',args:['-y',p.name],env:{SUPABASE_URL:'https://gvkljtwhsulzdpsapaau.supabase.co',SUPABASE_KEY:'<fill-in>'}}}};require('fs').writeFileSync(n,JSON.stringify(c,null,2)+'\\n');console.log(n+' regenerated from',p.name)\"",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
