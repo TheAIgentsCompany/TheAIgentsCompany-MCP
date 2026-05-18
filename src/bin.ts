@@ -7,7 +7,8 @@
  *   theaigentscompany-mcp                   Start MCP server (stdio)
  *   theaigentscompany-mcp install           Write config to Claude/Cursor/ChatGPT
  *   theaigentscompany-mcp uninstall         Remove config
- *   theaigentscompany-mcp sse [port]        Start HTTP/SSE server (default port 3010)
+ *   theaigentscompany-mcp export            Write mcp.json to current directory
+ *   theaigentscompany-mcp sse [port]        Start HTTP/SSE server
  */
 
 import { startServer, startHttpServer } from "./server.js";
@@ -16,7 +17,9 @@ import { homedir } from "os";
 import { resolve } from "path";
 
 const COMMAND = process.argv[2];
+const PACKAGE = "@theaigentscompany/mcp";
 const SERVER_KEY = "theaigentscompany";
+const STDIO_CONFIG = { command: "npx", args: ["-y", `${PACKAGE}@latest`] };
 const SSE_URL = "https://mcp.theaigentscompany.xyz/sse";
 
 // ── Config path detection ────────────────────────────────────────
@@ -63,12 +66,11 @@ function readJSON(path: string): Record<string, unknown> {
   }
 }
 
-function writeTo(client: string, configPath: string, existing: Record<string, unknown>, config: Record<string, unknown>): boolean {
+function writeTo(client: string, configPath: string, existing: Record<string, unknown>, config: Record<string, unknown>): void {
   const mcpServers = (existing.mcpServers as Record<string, unknown>) ?? {};
   mcpServers[SERVER_KEY] = config;
   existing.mcpServers = mcpServers;
   writeFileSync(configPath, JSON.stringify(existing, null, 2), "utf-8");
-  return true;
 }
 
 function removeFromConfig(configPath: string): boolean {
@@ -87,31 +89,55 @@ function removeFromConfig(configPath: string): boolean {
 async function installCommand() {
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║       TheAIgentsCompany-MCP — Installation (SSE)            ║
+║       TheAIgentsCompany-MCP — Installation                  ║
 ╚══════════════════════════════════════════════════════════════╝
-  ${SSE_URL}
 `);
 
-  const apps: [string, string | null][] = [
-    ["Claude Desktop", getConfigPath("claude")],
-    ["Cursor", getCursorMCPPath()],
-    ["ChatGPT Desktop", getConfigPath("chatgpt")],
-  ];
-
-  for (const [name, configPath] of apps) {
-    if (configPath) {
-      const dir = resolve(configPath, "..");
-      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-      const existing = readJSON(configPath);
-      writeTo(name, configPath, existing, { url: SSE_URL });
-      console.log(`  ✅ ${name.padEnd(16)} → ${configPath}`);
-    } else {
-      console.log(`  ℹ️  ${name.padEnd(16)} not detected`);
-    }
+  const claudePath = getConfigPath("claude");
+  if (claudePath) {
+    const dir = resolve(claudePath, "..");
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    const existing = readJSON(claudePath);
+    writeTo("Claude Desktop", claudePath, existing, STDIO_CONFIG);
+    console.log(`  ✅ Claude Desktop   → ${claudePath}`);
   }
 
-  console.log(`\n  📋 Claude Code CLI:\n    claude mcp add --transport http ${SERVER_KEY} ${SSE_URL}\n`);
+  const cursorPath = getCursorMCPPath();
+  if (cursorPath) {
+    const dir = resolve(cursorPath, "..");
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    const existing = readJSON(cursorPath);
+    writeTo("Cursor", cursorPath, existing, STDIO_CONFIG);
+    console.log(`  ✅ Cursor           → ${cursorPath}`);
+  } else {
+    console.log(`  ℹ️  Cursor           not detected`);
+  }
+
+  const gptPath = getConfigPath("chatgpt");
+  if (gptPath && (existsSync(gptPath) || process.platform === "darwin")) {
+    const dir = resolve(gptPath, "..");
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    const existing = readJSON(gptPath);
+    writeTo("ChatGPT Desktop", gptPath, existing, STDIO_CONFIG);
+    console.log(`  ✅ ChatGPT Desktop  → ${gptPath}`);
+  } else {
+    console.log(`  ℹ️  ChatGPT Desktop  not detected`);
+  }
+
+  console.log(`\n  📋 Exportable file:\n    npx -y ${PACKAGE}@latest export\n`);
   console.log(`  ✅ Done! Restart your AI client.`);
+}
+
+async function exportCommand() {
+  const config = {
+    mcpServers: {
+      [SERVER_KEY]: STDIO_CONFIG,
+    },
+  };
+  const outputPath = resolve(process.cwd(), "theaigentscompany.mcp.json");
+  writeFileSync(outputPath, JSON.stringify(config, null, 2), "utf-8");
+  console.log(`\n  ✅ Exported to ${outputPath}\n`);
+  console.log(`  To import in Claude Desktop:\n    Settings → Developer → Import MCP server → select the file\n`);
 }
 
 async function uninstallCommand() {
@@ -143,8 +169,10 @@ async function main() {
     await installCommand();
   } else if (COMMAND === "uninstall") {
     await uninstallCommand();
+  } else if (COMMAND === "export") {
+    await exportCommand();
   } else if (COMMAND === "sse") {
-    const port = Number(COMMAND === "sse" ? process.argv[3] : undefined) || 3010;
+    const port = Number(process.argv[3]) || 3010;
     await startHttpServer(port);
   } else if (COMMAND === "--help" || COMMAND === "-h") {
     console.log(`
@@ -152,13 +180,14 @@ TheAIgentsCompany-MCP
 
 Usage:
   theaigentscompany-mcp               Start MCP server (stdio)
-  theaigentscompany-mcp install       Write config to Claude Desktop (stdio),
-  .                                    Cursor (SSE), ChatGPT Desktop (SSE)
+  theaigentscompany-mcp install       Auto-detect OS, write config to detected apps
+  theaigentscompany-mcp export        Write theaigentscompany.mcp.json for import
   theaigentscompany-mcp uninstall     Remove config
   theaigentscompany-mcp sse [port]    Start HTTP/SSE server (default port 3010)
 
 Examples:
   npx -y @theaigentscompany/mcp@latest install
+  npx -y @theaigentscompany/mcp@latest export
     `);
   } else {
     await startServer();
