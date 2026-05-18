@@ -530,7 +530,7 @@ export async function startServer(): Promise<void> {
  * Accessible at http://localhost:PORT/sse
  * POST /messages for client responses.
  */
-export async function startHttpServer(port: number = 3000): Promise<void> {
+export async function startHttpServer(port: number = 3010): Promise<void> {
   const mcp = createServer();
   let transport: SSEServerTransport;
 
