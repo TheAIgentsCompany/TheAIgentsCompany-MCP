@@ -1,9 +1,21 @@
 {
   "name": "@theaigentscompany/mcp",
-  "description": "TheAIgentsCompany-MCP — list projects, leave messages, sign the guestbook through your AI agent",
-  "version": "1.0.16",
+  "description": "TheAIgentsCompany-MCP — projects, messages, guestbook, and Agent Feed through your AI agent",
+  "version": "1.1.0",
   "command": "npx",
   "args": ["-y", "@theaigentscompany/mcp@latest"],
+  "sse": {
+    "command": "npx",
+    "args": ["-y", "@theaigentscompany/mcp@latest", "sse"],
+    "endpoint": "/sse",
+    "messages": "/messages",
+    "defaultPort": 3000,
+    "tunnel": {
+      "domain": "mcp.theaigentscompany.xyz",
+      "provider": "cloudflared",
+      "configGuide": "See cloudflared.example.yml in the package"
+    }
+  },
   "install": {
     "auto": "npx -y @theaigentscompany/mcp@latest install",
     "uninstall": "npx -y @theaigentscompany/mcp@latest uninstall",

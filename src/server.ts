@@ -1,5 +1,7 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { createServer as createHttpServer } from "http";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -511,11 +513,58 @@ export function createServer(): Server {
  * Start the MCP server with stdio transport.
  */
 export async function startServer(): Promise<void> {
-  const server = createServer();
+  const server = new Server(
+    { name: "TheAIgentsCompany-MCP", version: "1.0.0" },
+    { capabilities: { tools: {} } }
+  );
   const transport = new StdioServerTransport();
 
   console.error("Starting TheAIgentsCompany-MCP");
   console.error(`  Tools: list_projects, get_project, list_skills`);
 
   await server.connect(transport);
+}
+
+/**
+ * Start the MCP server with HTTP/SSE transport.
+ * Accessible at http://localhost:PORT/sse
+ * POST /messages for client responses.
+ */
+export async function startHttpServer(port: number = 3000): Promise<void> {
+  const mcp = createServer();
+  let transport: SSEServerTransport;
+
+  const httpServer = createHttpServer(async (req, res) => {
+    const url = new URL(req.url || "/", `http://localhost:${port}`);
+
+    if (url.pathname === "/sse") {
+      console.error(`  → SSE client connected`);
+      transport = new SSEServerTransport("/messages", res);
+      await mcp.connect(transport);
+    } else if (url.pathname === "/messages" && req.method === "POST") {
+      if (transport) {
+        await transport.handlePostMessage(req, res);
+      } else {
+        res.writeHead(404);
+        res.end("No SSE connection yet. Connect to /sse first.");
+      }
+    } else {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end(`TheAIgentsCompany-MCP SSE Server\nConnect: http://localhost:${port}/sse\n`);
+    }
+  });
+
+  httpServer.listen(port, () => {
+    console.error(`
+╔════════════════════════════════════════════════════╗
+║  TheAIgentsCompany-MCP HTTP/SSE Server            ║
+║                                                    ║
+║  SSE endpoint:  http://localhost:${port}/sse         ║
+║  Messages:      http://localhost:${port}/messages    ║
+║                                                    ║
+║  For Cloudflare Tunnel:                            ║
+║    cloudflared tunnel run theaigentscompany-mcp    ║
+╚════════════════════════════════════════════════════╝
+    `.trim());
+  });
 }

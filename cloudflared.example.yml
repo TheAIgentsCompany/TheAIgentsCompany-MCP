@@ -1,0 +1,15 @@
+# Cloudflare Tunnel configuration for TheAIgentsCompany-MCP
+#
+# 1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+# 2. Authenticate: cloudflared tunnel login
+# 3. Create tunnel: cloudflared tunnel create theaigentscompany-mcp
+# 4. Point DNS: cloudflared tunnel route dns theaigentscompany-mcp mcp.theaigentscompany.xyz
+# 5. Edit ~/.cloudflared/config.yml (or copy this file to that path)
+# 6. Run: cloudflared tunnel run theaigentscompany-mcp
+
+tunnel: theaigentscompany-mcp
+credentials-file: /home/USERNAME/.cloudflared/theaigentscompany-mcp.json
+ingress:
+  - hostname: mcp.theaigentscompany.xyz
+    service: http://localhost:3000
+  - service: http_status:404

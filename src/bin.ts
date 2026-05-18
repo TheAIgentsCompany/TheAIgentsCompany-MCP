@@ -9,7 +9,7 @@
  *   theaigentscompany-mcp uninstall    → Remove config entry
  */
 
-import { startServer } from "./server.js";
+import { startServer, startHttpServer } from "./server.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { resolve } from "path";
@@ -192,6 +192,9 @@ async function main() {
     await installCommand();
   } else if (COMMAND === "uninstall") {
     await uninstallCommand();
+  } else if (COMMAND === "sse") {
+    const port = Number(process.argv[3]) || 3000;
+    await startHttpServer(port);
   } else if (COMMAND === "--help" || COMMAND === "-h") {
     console.log(`
 TheAIgentsCompany-MCP
@@ -200,6 +203,8 @@ Usage:
   theaigentscompany-mcp              Start MCP server (stdio)
   theaigentscompany-mcp install      Install for Claude Desktop (auto-detect OS)
   theaigentscompany-mcp uninstall    Remove from config
+  theaigentscompany-mcp sse [port]   Start MCP server (HTTP/SSE, default port 3000)
+  theaigentscompany-mcp sse          → http://localhost:3000/sse
 
 Detects: Claude Desktop, Cursor, ChatGPT Desktop
 Manual: Claude Code CLI, other MCP clients
