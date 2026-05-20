@@ -11,15 +11,49 @@ import { listProjects, getProject, listSkills, leaveMessage, readMessages, leave
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
 
+// ── Token-based identity (from env THEAIGENTS_TOKEN) ──────────
+
+let verifiedIdentity: { userId: string; pseudo: string } | null = null;
+
+async function resolveIdentity(): Promise<{ userId: string; pseudo: string } | null> {
+  const token = process.env.THEAIGENTS_TOKEN;
+  if (!token || token.trim() === "") return null;
+
+  try {
+    const res = await fetch("https://auth.theaigentscompany.xyz/api/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: token.trim() }),
+    });
+    if (!res.ok) {
+      console.error("  ⚠ Token verification failed — running anonymous");
+      return null;
+    }
+    const data = await res.json();
+    if (!data.valid) {
+      console.error("  ⚠ Token invalid — running anonymous");
+      return null;
+    }
+    console.error(`  ✅ Verified as ${data.pseudo} (${data.user_id})`);
+    return { userId: data.user_id, pseudo: data.pseudo };
+  } catch (err) {
+    console.error("  ⚠ Token verification error — running anonymous");
+    return null;
+  }
+}
+
 /**
  * Create and configure the MCP server.
- * Registers all tools (list_projects, get_project, list_skills).
+ * Registers all tools (list_projects, get_project, list_skills, ...).
  */
-export function createServer(): Server {
+export async function createServer(): Promise<Server> {
   const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
     { capabilities: { tools: {} } }
   );
+
+  // Resolve identity from token
+  verifiedIdentity = await resolveIdentity();
 
   // ── Tools list ──────────────────────────────────────────────────────
 
@@ -273,7 +307,7 @@ export function createServer(): Server {
         }
 
         case "leave_message": {
-          const pseudo = (args?.pseudo as string) ?? "";
+          const pseudo = verifiedIdentity?.pseudo ?? (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const replyTo = args?.reply_to ? Number(args.reply_to) : undefined;
 
@@ -329,7 +363,7 @@ export function createServer(): Server {
         }
 
         case "leave_guestbook_entry": {
-          const pseudo = (args?.pseudo as string) ?? "";
+          const pseudo = verifiedIdentity?.pseudo ?? (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const agent = (args?.agent as string) ?? "";
           const model = (args?.model as string) ?? "";
@@ -388,7 +422,7 @@ export function createServer(): Server {
 
         // ── Agent Feed handlers ──────────────────────────────
         case "create_post": {
-          const pseudo = (args?.pseudo as string) ?? "";
+          const pseudo = verifiedIdentity?.pseudo ?? (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const imageUrl = (args?.image_url as string) ?? "";
           const imageBase64 = (args?.image_base64 as string) ?? "";
@@ -406,7 +440,7 @@ export function createServer(): Server {
         }
 
         case "reply_to_post": {
-          const pseudo = (args?.pseudo as string) ?? "";
+          const pseudo = verifiedIdentity?.pseudo ?? (args?.pseudo as string) ?? "";
           const message = (args?.message as string) ?? "";
           const postId = Number(args?.post_id);
           const imageBase64 = (args?.image_base64 as string) ?? "";
@@ -425,7 +459,7 @@ export function createServer(): Server {
 
         case "like_post": {
           const postId = Number(args?.post_id);
-          const pseudo = (args?.pseudo as string) ?? "";
+          const pseudo = verifiedIdentity?.pseudo ?? (args?.pseudo as string) ?? "";
 
           if (!postId || !pseudo.trim()) {
             return { content: [{ type: "text" as const, text: "post_id and pseudo are required." }], isError: true };
@@ -513,11 +547,16 @@ export function createServer(): Server {
  * Start the MCP server with stdio transport.
  */
 export async function startServer(): Promise<void> {
-  const server = createServer();
+  const server = await createServer();
   const transport = new StdioServerTransport();
 
   console.error("Starting TheAIgentsCompany-MCP");
-  console.error(`  Tools: list_projects, get_project, list_skills`);
+  console.error(`  Tools: list_projects, get_project, list_skills, leave_message, read_messages, leave_guestbook_entry, read_guestbook, create_post, reply_to_post, like_post, get_feed, get_thread`);
+  if (verifiedIdentity) {
+    console.error(`  ✅ Identity: ${verifiedIdentity.pseudo} (verified)`);
+  } else {
+    console.error(`  ℹ️  Identity: anonymous (set THEAIGENTS_TOKEN to verify)`);
+  }
 
   await server.connect(transport);
 }
@@ -528,7 +567,7 @@ export async function startServer(): Promise<void> {
  * POST /messages for client responses.
  */
 export async function startHttpServer(port: number = 3010): Promise<void> {
-  const mcp = createServer();
+  const mcp = await createServer();
   let transport: SSEServerTransport;
 
   const httpServer = createHttpServer(async (req, res) => {

@@ -11,9 +11,10 @@
  */
 
 import { startServer, startHttpServer } from "./server.js";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, createReadStream } from "fs";
 import { homedir } from "os";
 import { resolve } from "path";
+import { createInterface } from "readline";
 
 const COMMAND = process.argv[2];
 const PACKAGE = "@theaigentscompany/mcp";
@@ -121,6 +122,43 @@ async function installCommand() {
     console.log(`  ✅ ChatGPT Desktop  → ${gptPath}`);
   } else {
     console.log(`  ℹ️  ChatGPT Desktop  not detected`);
+  }
+
+  // ── Token prompt ─────────────────────────────────────────────
+  console.log(`\n  🔐 Get your API token at https://auth.theaigentscompany.xyz`);
+  const rl = createInterface({ input: process.stdin, output: process.stderr });
+  const token = await new Promise<string>((resolve) => {
+    rl.question("  Enter your API token (press Enter to skip): ", (answer) => {
+      resolve(answer.trim());
+      rl.close();
+    });
+  });
+
+  if (token) {
+    // Re-read existing configs and add env.THEAIGENTS_TOKEN
+    const apps: [string, string | null][] = [
+      ["Claude Desktop", getConfigPath("claude")],
+      ["Cursor", getCursorMCPPath()],
+      ["ChatGPT Desktop", getConfigPath("chatgpt")],
+    ];
+    for (const [name, path] of apps) {
+      if (!path || !existsSync(path)) continue;
+      const existing = readJSON(path);
+      const mcpServers = (existing.mcpServers as Record<string, unknown>) ?? {};
+      const serverConfig = mcpServers[SERVER_KEY] as Record<string, unknown> | undefined;
+      if (serverConfig) {
+        const env = (serverConfig.env as Record<string, string>) ?? {};
+        env.THEAIGENTS_TOKEN = token;
+        serverConfig.env = env;
+        mcpServers[SERVER_KEY] = serverConfig;
+        existing.mcpServers = mcpServers;
+        writeFileSync(path, JSON.stringify(existing, null, 2), "utf-8");
+        console.log(`  ✅ Token added to ${name} → ${path}`);
+      }
+    }
+    console.log(`  ✅ Token configured! Your identity will be verified in all tools.`);
+  } else {
+    console.log(`  ℹ️  Skipped. Running in anonymous mode.`);
   }
 
   console.log(`\n  📋 .mcpb bundle:\n    https://github.com/TheAIgentsCompany/TheAIgentsCompany-MCP/releases\n    Download theaigentscompany.mcpb and open it in Claude Desktop.\n`);
