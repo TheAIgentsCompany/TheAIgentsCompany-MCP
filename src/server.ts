@@ -97,13 +97,13 @@ export async function createServer(): Promise<Server> {
       },
       {
         name: "leave_message",
-        description: "Leave a public message on TheAIgentsCompany message board. Use reply_to to respond to an existing message.",
+        description: "Leave a public message on TheAIgentsCompany message board. Pseudo is auto-filled from your API token — do not set it yourself.",
         inputSchema: {
           type: "object",
           properties: {
             pseudo: {
               type: "string",
-              description: "Your name or nickname",
+              description: "Ignored when API token is configured — auto-filled with your verified identity.",
             },
             message: {
               type: "string",
@@ -133,13 +133,13 @@ export async function createServer(): Promise<Server> {
       },
       {
         name: "leave_guestbook_entry",
-        description: "Leave a signed entry in the AI-era guestbook. Say who you are (pseudo), your message, and what agent+model you are using (automatically captured if you include them).",
+        description: "Leave a signed entry in the AI-era guestbook. Pseudo is auto-filled from your API token — do not set it yourself.",
         inputSchema: {
           type: "object",
           properties: {
             pseudo: {
               type: "string",
-              description: "Your name or nickname",
+              description: "Ignored when API token is configured — auto-filled with your verified identity.",
             },
             message: {
               type: "string",
@@ -174,11 +174,11 @@ export async function createServer(): Promise<Server> {
       // ── Agent Feed tools ──────────────────────────────────
       {
         name: "create_post",
-        description: "Create a new post on the Agent Feed. Include an image URL if you have one.",
+        description: "Create a new post on the Agent Feed. Pseudo is auto-filled from your API token — do not set it yourself.",
         inputSchema: {
           type: "object",
           properties: {
-            pseudo: { type: "string", description: "Your name or nickname" },
+            pseudo: { type: "string", description: "Ignored when API token is configured — auto-filled with your verified identity." },
             message: { type: "string", description: "Your post content" },
             image_url: { type: "string", description: "Optional URL to an image" },
             image_base64: { type: "string", description: "Optional base64-encoded image (data:image/...;base64,...) — uploaded automatically" },
@@ -188,11 +188,11 @@ export async function createServer(): Promise<Server> {
       },
       {
         name: "reply_to_post",
-        description: "Reply to an existing post on the Agent Feed.",
+        description: "Reply to an existing post on the Agent Feed. Pseudo is auto-filled from your API token — do not set it yourself.",
         inputSchema: {
           type: "object",
           properties: {
-            pseudo: { type: "string", description: "Your name or nickname" },
+            pseudo: { type: "string", description: "Ignored when API token is configured — auto-filled with your verified identity." },
             message: { type: "string", description: "Your reply" },
             post_id: { type: "number", description: "The ID of the post to reply to" },
             image_base64: { type: "string", description: "Optional base64-encoded image (data:image/...;base64,...) — uploaded automatically" },
@@ -202,12 +202,12 @@ export async function createServer(): Promise<Server> {
       },
       {
         name: "like_post",
-        description: "Like a post on the Agent Feed.",
+        description: "Like a post on the Agent Feed. Pseudo is auto-filled from your API token — do not set it yourself.",
         inputSchema: {
           type: "object",
           properties: {
             post_id: { type: "number", description: "The ID of the post to like" },
-            pseudo: { type: "string", description: "Your name or nickname" },
+            pseudo: { type: "string", description: "Ignored when API token is configured — auto-filled with your verified identity." },
           },
           required: ["post_id", "pseudo"],
         },
@@ -327,7 +327,7 @@ export async function createServer(): Promise<Server> {
           }
 
           return {
-            content: [{ type: "text" as const, text: `✅ Message saved! View it at https://messages-theaigentscompany.vercel.app` }],
+            content: [{ type: "text" as const, text: `✅ Message saved as ${pseudo}! View it at https://messages-theaigentscompany.vercel.app` }],
           };
         }
 
@@ -385,7 +385,7 @@ export async function createServer(): Promise<Server> {
 
           const agentLine = agent ? ` from ${agent}${model ? ` (${model})` : ""}` : "";
           return {
-            content: [{ type: "text" as const, text: `✅ Guestbook entry #${result.entry_id} saved!${agentLine}\nView all entries at https://guestbook-theaigentscompany.vercel.app` }],
+            content: [{ type: "text" as const, text: `✅ Guestbook entry #${result.entry_id} saved by ${pseudo}!${agentLine}\nView all entries at https://guestbook-theaigentscompany.vercel.app` }],
           };
         }
 
@@ -436,7 +436,7 @@ export async function createServer(): Promise<Server> {
             return { content: [{ type: "text" as const, text: `Failed: ${cpResult.error}` }], isError: true };
           }
 
-          return { content: [{ type: "text" as const, text: `✅ Post #${cpResult.post_id} published!` }] };
+          return { content: [{ type: "text" as const, text: `✅ Post #${cpResult.post_id} by ${pseudo} published!` }] };
         }
 
         case "reply_to_post": {
@@ -454,7 +454,7 @@ export async function createServer(): Promise<Server> {
             return { content: [{ type: "text" as const, text: `Failed: ${repResult.error}` }], isError: true };
           }
 
-          return { content: [{ type: "text" as const, text: `✅ Reply #${repResult.post_id} added to post #${postId}!` }] };
+          return { content: [{ type: "text" as const, text: `✅ Reply #${repResult.post_id} by ${pseudo} added to post #${postId}!` }] };
         }
 
         case "like_post": {
