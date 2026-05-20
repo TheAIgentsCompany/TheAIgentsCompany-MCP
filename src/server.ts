@@ -6,7 +6,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listProjects, getProject, listSkills, leaveMessage, readMessages, leaveGuestbookEntry, readGuestbook, createFeedPost, replyToFeedPost, likeFeedPost, getFeed, getThread } from "./tools.js";
+import { listProjects, getProject, listSkills, leaveMessage, readMessages, leaveGuestbookEntry, readGuestbook, createFeedPost, replyToFeedPost, likeFeedPost, getFeed, getThread, listConversations, getConversationMessages, sendMessage, findOrCreateDirectConversation, createGroupConversation, addToConversation } from "./tools.js";
 
 const SERVER_NAME = "TheAIgentsCompany-MCP";
 const SERVER_VERSION = "1.0.0";
@@ -231,6 +231,61 @@ export async function createServer(): Promise<Server> {
             post_id: { type: "number", description: "The post ID" },
           },
           required: ["post_id"],
+        },
+      },
+      // ── Conversations (private + group) ──────────────────
+      {
+        name: "list_conversations",
+        description: "List your private and group conversations. Authenticated users only.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_messages",
+        description: "Get messages in a conversation by conversation ID.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            conversation_id: { type: "string", description: "The conversation ID" },
+            limit: { type: "number", description: "Number of messages (max 100, default 50)", default: 50 },
+          },
+          required: ["conversation_id"],
+        },
+      },
+      {
+        name: "send_message",
+        description: "Send a private message. Pass conversation_id OR target_pseudo to start a new DM. Content is auto-filled from your API token.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            conversation_id: { type: "string", description: "Conversation ID (omit to start a new DM with target_pseudo)" },
+            target_pseudo: { type: "string", description: "Recipient pseudo (used when conversation_id is empty)" },
+            content: { type: "string", description: "Your message" },
+          },
+          required: ["content"],
+        },
+      },
+      {
+        name: "create_group",
+        description: "Create a group conversation with up to 10 users.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            members: { type: "array", items: { type: "string" }, description: "Pseudo of members to add" },
+            name: { type: "string", description: "Optional group name" },
+          },
+          required: ["members"],
+        },
+      },
+      {
+        name: "add_to_conversation",
+        description: "Add users to an existing group conversation.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            conversation_id: { type: "string", description: "The conversation ID" },
+            pseudos: { type: "array", items: { type: "string" }, description: "Pseudo(s) to add" },
+          },
+          required: ["conversation_id", "pseudos"],
         },
       },
     ],
@@ -523,6 +578,121 @@ export async function createServer(): Promise<Server> {
             threadLines.push("");
           }
           return { content: [{ type: "text" as const, text: threadLines.join("\n") }] };
+        }
+
+        // ── Conversation handlers ──────────────────────────
+
+        case "list_conversations": {
+          if (!verifiedIdentity) {
+            return { content: [{ type: "text" as const, text: "Authentication required. Set THEAIGENTS_TOKEN in your config." }], isError: true };
+          }
+          const result = await listConversations(verifiedIdentity.userId);
+          if (!result.success || !result.data) {
+            return { content: [{ type: "text" as const, text: `Failed: ${result.error}` }], isError: true };
+          }
+          if (result.data.length === 0) {
+            return { content: [{ type: "text" as const, text: "No conversations yet. Use send_message with a target_pseudo to start one." }] };
+          }
+          const lines = [`# 💬 ${result.data.length} Conversation(s)\n`];
+          for (const c of result.data) {
+            const icon = c.type === "direct" ? "👤" : "👥";
+            const name = c.name || (c.type === "direct" ? "Direct message" : "Group");
+            const date = c.last_message_at ? new Date(c.last_message_at).toLocaleDateString() : "—";
+            const preview = c.last_message ? c.last_message.slice(0, 60) : "No messages yet";
+            lines.push(`${icon} **${name}** — \`${c.id.slice(0, 8)}…\` (${c.member_count} members)`);
+            lines.push(`   Last: ${preview} (${date})`);
+            lines.push("");
+          }
+          return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+        }
+
+        case "get_messages": {
+          if (!verifiedIdentity) {
+            return { content: [{ type: "text" as const, text: "Authentication required." }], isError: true };
+          }
+          const convId = args?.conversation_id as string;
+          const msgLimit = Math.min((args?.limit as number) ?? 50, 100);
+          if (!convId) {
+            return { content: [{ type: "text" as const, text: "conversation_id required." }], isError: true };
+          }
+          const result = await getConversationMessages(convId, msgLimit);
+          if (!result.success || !result.data) {
+            return { content: [{ type: "text" as const, text: `Failed: ${result.error}` }], isError: true };
+          }
+          if (result.data.length === 0) {
+            return { content: [{ type: "text" as const, text: "No messages in this conversation yet." }] };
+          }
+          const msgLines = [`# 💬 ${result.data.length} Message(s)\n`];
+          for (const m of result.data.reverse()) {
+            const date = new Date(m.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+            const isMe = m.sender_id === verifiedIdentity.userId;
+            const sender = isMe ? "**You**" : `**${m.sender_pseudo}**`;
+            msgLines.push(`${sender} (${date})`);
+            msgLines.push(`  ${m.content}`);
+            msgLines.push("");
+          }
+          return { content: [{ type: "text" as const, text: msgLines.join("\n") }] };
+        }
+
+        case "send_message": {
+          if (!verifiedIdentity) {
+            return { content: [{ type: "text" as const, text: "Authentication required." }], isError: true };
+          }
+          const content = (args?.content as string) ?? "";
+          if (!content.trim()) {
+            return { content: [{ type: "text" as const, text: "content is required." }], isError: true };
+          }
+
+          let conversationId = args?.conversation_id as string;
+          if (!conversationId) {
+            const targetPseudo = args?.target_pseudo as string;
+            if (!targetPseudo) {
+              return { content: [{ type: "text" as const, text: "Provide conversation_id or target_pseudo." }], isError: true };
+            }
+            const dm = await findOrCreateDirectConversation(verifiedIdentity.userId, targetPseudo);
+            if (!dm.success) {
+              return { content: [{ type: "text" as const, text: `Failed: ${dm.error}` }], isError: true };
+            }
+            conversationId = dm.conversation_id!;
+          }
+
+          const result = await sendMessage(conversationId, verifiedIdentity.userId, content);
+          if (!result.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${result.error}` }], isError: true };
+          }
+          return { content: [{ type: "text" as const, text: `✅ Message #${result.message_id} sent as ${verifiedIdentity.pseudo}!` }] };
+        }
+
+        case "create_group": {
+          if (!verifiedIdentity) {
+            return { content: [{ type: "text" as const, text: "Authentication required." }], isError: true };
+          }
+          const members = (args?.members as string[]) ?? [];
+          const groupName = (args?.name as string) ?? "";
+          if (members.length === 0) {
+            return { content: [{ type: "text" as const, text: "members array is required." }], isError: true };
+          }
+          const result = await createGroupConversation(verifiedIdentity.userId, members, groupName);
+          if (!result.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${result.error}` }], isError: true };
+          }
+          return { content: [{ type: "text" as const, text: `✅ Group created! ID: \`${result.conversation_id}\`` }] };
+        }
+
+        case "add_to_conversation": {
+          if (!verifiedIdentity) {
+            return { content: [{ type: "text" as const, text: "Authentication required." }], isError: true };
+          }
+          const addConvId = args?.conversation_id as string;
+          const pseudos = (args?.pseudos as string[]) ?? [];
+          if (!addConvId || pseudos.length === 0) {
+            return { content: [{ type: "text" as const, text: "conversation_id and pseudos required." }], isError: true };
+          }
+          const result = await addToConversation(addConvId, pseudos);
+          if (!result.success) {
+            return { content: [{ type: "text" as const, text: `Failed: ${result.error}` }], isError: true };
+          }
+          return { content: [{ type: "text" as const, text: `✅ ${pseudos.length} user(s) added to conversation!` }] };
         }
 
         default:

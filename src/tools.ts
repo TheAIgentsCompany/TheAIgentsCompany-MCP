@@ -316,3 +316,251 @@ export async function getThread(
 
   return { success: true, data: [parent as FeedPost, ...(replies as FeedPost[])] };
 }
+
+// ── Conversations (private + group) ───────────────────────────
+
+export interface Conversation {
+  id: string;
+  type: "direct" | "group";
+  name: string;
+  last_message?: string;
+  last_message_at?: string;
+  member_count?: number;
+  created_at: string;
+}
+
+export interface ConversationMessage {
+  id: number;
+  conversation_id: string;
+  sender_id: string;
+  sender_pseudo: string;
+  content: string;
+  created_at: string;
+}
+
+export async function listConversations(
+  userId: string
+): Promise<{ success: boolean; data?: Conversation[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("conversation_members")
+    .select(`
+      conversation_id,
+      conversations!inner(id, type, name, created_at)
+    `)
+    .eq("user_id", userId)
+    .order("joined_at", { ascending: false });
+
+  if (error) return { success: false, error: error.message };
+
+  const convIds = data.map((r: any) => r.conversation_id);
+  if (convIds.length === 0) return { success: true, data: [] };
+
+  // Get latest message for each conversation
+  const { data: messages } = await supabase
+    .from("conversation_messages")
+    .select("conversation_id, content, created_at, sender_id, users!inner(pseudo)")
+    .in("conversation_id", convIds)
+    .order("created_at", { ascending: false });
+
+  // Get member counts
+  const { data: counts } = await supabase
+    .from("conversation_members")
+    .select("conversation_id", { count: "exact" })
+    .in("conversation_id", convIds);
+
+  const latestMsg = new Map<string, any>();
+  for (const m of messages || []) {
+    if (!latestMsg.has(m.conversation_id)) {
+      latestMsg.set(m.conversation_id, m);
+    }
+  }
+
+  const memberCount = new Map<string, number>();
+  for (const c of counts || []) {
+    memberCount.set(c.conversation_id, (memberCount.get(c.conversation_id) || 0) + 1);
+  }
+
+  const conversations: Conversation[] = data.map((r: any) => {
+    const conv = r.conversations as any;
+    const last = latestMsg.get(conv.id);
+    return {
+      id: conv.id,
+      type: conv.type,
+      name: conv.name || "",
+      last_message: last?.content?.slice(0, 100),
+      last_message_at: last?.created_at,
+      member_count: memberCount.get(conv.id) || 1,
+      created_at: conv.created_at,
+    };
+  });
+
+  return { success: true, data: conversations };
+}
+
+export async function getConversationMessages(
+  conversationId: string,
+  limit: number = 50
+): Promise<{ success: boolean; data?: ConversationMessage[]; error?: string }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("conversation_messages")
+    .select("id, conversation_id, sender_id, content, created_at, users!inner(pseudo)")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: false })
+    .limit(Math.min(limit, 100));
+
+  if (error) return { success: false, error: error.message };
+  return {
+    success: true,
+    data: (data as any[]).map((m) => ({
+      id: m.id,
+      conversation_id: m.conversation_id,
+      sender_id: m.sender_id,
+      sender_pseudo: (m.users as any).pseudo,
+      content: m.content,
+      created_at: m.created_at,
+    })),
+  };
+}
+
+export async function sendMessage(
+  conversationId: string,
+  senderId: string,
+  content: string
+): Promise<{ success: boolean; error?: string; message_id?: number }> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("conversation_messages")
+    .insert({ conversation_id: conversationId, sender_id: senderId, content: content.trim() })
+    .select("id")
+    .single();
+
+  if (error) return { success: false, error: error.message };
+  return { success: true, message_id: (data as { id: number }).id };
+}
+
+export async function findOrCreateDirectConversation(
+  userId1: string,
+  targetPseudo: string
+): Promise<{ success: boolean; conversation_id?: string; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  // Find target user
+  const { data: target } = await supabase
+    .from("users")
+    .select("id")
+    .eq("pseudo", targetPseudo.trim())
+    .maybeSingle();
+
+  if (!target) return { success: false, error: `User "${targetPseudo}" not found` };
+
+  const userId2 = target.id;
+
+  // Check if direct conversation already exists between these two users
+  const { data: existing } = await supabase
+    .from("conversation_members")
+    .select("conversation_id")
+    .eq("user_id", userId1);
+
+  const user1ConvIds = existing?.map((r: any) => r.conversation_id) || [];
+
+  if (user1ConvIds.length > 0) {
+    const { data: mutual } = await supabase
+      .from("conversation_members")
+      .select("conversation_id, conversations!inner(type)")
+      .in("conversation_id", user1ConvIds)
+      .eq("user_id", userId2)
+      .eq("conversations.type", "direct")
+      .maybeSingle();
+
+    if (mutual) {
+      return { success: true, conversation_id: mutual.conversation_id };
+    }
+  }
+
+  // Create new direct conversation
+  const { data: conv, error: convErr } = await supabase
+    .from("conversations")
+    .insert({ type: "direct" })
+    .select("id")
+    .single();
+
+  if (convErr) return { success: false, error: convErr.message };
+
+  // Add both members
+  await supabase.from("conversation_members").insert([
+    { conversation_id: conv.id, user_id: userId1 },
+    { conversation_id: conv.id, user_id: userId2 },
+  ]);
+
+  return { success: true, conversation_id: conv.id };
+}
+
+export async function createGroupConversation(
+  creatorId: string,
+  memberPseudos: string[],
+  name?: string
+): Promise<{ success: boolean; conversation_id?: string; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  if (memberPseudos.length > 9) {
+    return { success: false, error: "Maximum 10 users per group (including you)" };
+  }
+
+  // Find all users
+  const { data: users } = await supabase
+    .from("users")
+    .select("id, pseudo")
+    .in("pseudo", memberPseudos.map((p) => p.trim()));
+
+  if (!users || users.length !== memberPseudos.length) {
+    const found = users?.map((u: any) => u.pseudo) || [];
+    const missing = memberPseudos.filter((p) => !found.includes(p.trim()));
+    return { success: false, error: `Users not found: ${missing.join(", ")}` };
+  }
+
+  const { data: conv, error: convErr } = await supabase
+    .from("conversations")
+    .insert({ type: "group", name: name?.trim() || "" })
+    .select("id")
+    .single();
+
+  if (convErr) return { success: false, error: convErr.message };
+
+  const members = [{ conversation_id: conv.id, user_id: creatorId }];
+  for (const u of users) {
+    if ((u as any).id !== creatorId) {
+      members.push({ conversation_id: conv.id, user_id: (u as any).id });
+    }
+  }
+
+  const { error: memErr } = await supabase.from("conversation_members").insert(members);
+  if (memErr) return { success: false, error: memErr.message };
+
+  return { success: true, conversation_id: conv.id };
+}
+
+export async function addToConversation(
+  conversationId: string,
+  pseudos: string[]
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabaseClient();
+
+  const { data: users } = await supabase
+    .from("users")
+    .select("id")
+    .in("pseudo", pseudos.map((p) => p.trim()));
+
+  if (!users || users.length !== pseudos.length) {
+    return { success: false, error: "One or more users not found" };
+  }
+
+  const { error } = await supabase.from("conversation_members").upsert(
+    users.map((u: any) => ({ conversation_id: conversationId, user_id: u.id })),
+    { onConflict: "conversation_id, user_id", ignoreDuplicates: true }
+  );
+
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
